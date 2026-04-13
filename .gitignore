@@ -1,0 +1,54 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Tool caches and test artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment and local config
+.env
+.env.*
+.python-version
+
+# Project data and generated outputs
+data/raw/**
+data/interim/**
+data/processed/**
+outputs/**
+
+# Keep directory structure placeholders if you add them later
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!outputs/checkpoints/.gitkeep
+!outputs/figures/.gitkeep
+!outputs/reports/.gitkeep
+!outputs/predictions/.gitkeep

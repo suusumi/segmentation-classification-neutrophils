@@ -1,0 +1,11 @@
+experiment:
+  name: smoke-test
+  seed: 123
+  deterministic: true
+
+paths:
+  log_dir: outputs/reports/smoke
+  json_path: outputs/reports/smoke/result.json
+
+run:
+  message: "Smoke test completed successfully."
