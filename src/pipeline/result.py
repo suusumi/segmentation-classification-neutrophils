@@ -12,12 +12,23 @@ class MorphologicalFeatures:
 
     nucleus_area_px: int
     nucleus_perimeter_px: float
+    nucleus_circularity: float
     nucleus_solidity: float
     nucleus_eccentricity: float
     nucleus_extent: float
+    nucleus_orientation_degrees: float
+    nucleus_major_axis_length_px: float
+    nucleus_minor_axis_length_px: float
+    nucleus_aspect_ratio: float
+    nucleus_convex_area_px: int
+    nucleus_filled_area_px: int
     nucleus_bbox_width_px: int
     nucleus_bbox_height_px: int
     nucleus_segments: int
+    segment_area_mean_px: float
+    segment_area_min_px: int
+    segment_area_max_px: int
+    mask_foreground_fraction: float
 
 
 @dataclass(frozen=True)
@@ -42,6 +53,16 @@ class AnalysisArtifacts:
 
 
 @dataclass(frozen=True)
+class PipelineMetadata:
+    """Implementation details for reproducibility and debugging."""
+
+    pipeline_version: str
+    segmenter_name: str
+    classifier_name: str
+    postprocessing: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class AnalysisResult:
     """Complete API-friendly result for one analyzed image."""
 
@@ -53,9 +74,9 @@ class AnalysisResult:
     features: MorphologicalFeatures
     classification: ClassificationResult
     artifacts: AnalysisArtifacts
+    metadata: PipelineMetadata
 
     def to_dict(self) -> dict[str, Any]:
         """Convert nested dataclasses to plain dictionaries."""
 
         return asdict(self)
-

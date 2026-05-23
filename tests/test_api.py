@@ -41,4 +41,4 @@ def test_analysis_endpoint_accepts_image(tmp_path: Path) -> None:
     assert payload["status"] == "completed"
     assert payload["classification"]["label"] in {"normal", "hypersegmentation", "unknown"}
     assert payload["artifacts"]["mask_image"].endswith("nucleus_mask.png")
-
+    assert payload["metadata"]["segmenter_name"] == "threshold"

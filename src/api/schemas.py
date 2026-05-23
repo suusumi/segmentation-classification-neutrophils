@@ -33,4 +33,4 @@ class AnalysisResponse(BaseModel):
     features: dict[str, Any] = Field(default_factory=dict)
     classification: dict[str, Any] = Field(default_factory=dict)
     artifacts: dict[str, Any] = Field(default_factory=dict)
-
+    metadata: dict[str, Any] = Field(default_factory=dict)

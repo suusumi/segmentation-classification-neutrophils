@@ -17,7 +17,8 @@ from src.pipeline.classification import classify_neutrophil
 from src.pipeline.features import extract_morphological_features
 from src.pipeline.postprocessing import postprocess_mask
 from src.pipeline.preprocessing import preprocess_image
-from src.pipeline.result import AnalysisArtifacts, AnalysisResult
+from src.pipeline.result import AnalysisArtifacts, AnalysisResult, PipelineMetadata
+from src.pipeline.segment_counting import SegmentCountConfig, count_nucleus_segments
 from src.pipeline.segmentation import ThresholdNucleusSegmenter, UNetNucleusSegmenter
 from src.services.errors import PipelineError
 from src.utils.logger import get_logger
@@ -26,8 +27,11 @@ from src.utils.logger import get_logger
 class NeutrophilAnalysisPipeline:
     """Pipeline for single-neutrophil images."""
 
+    version = "0.2.0"
+
     def __init__(self, segmenter_name: str = SETTINGS.segmenter_name) -> None:
         self.segmenter_name = segmenter_name
+        self.segment_count_config = SegmentCountConfig()
 
     def _build_segmenter(self):
         if self.segmenter_name == "threshold":
@@ -60,7 +64,8 @@ class NeutrophilAnalysisPipeline:
         segmenter = self._build_segmenter()
         raw_mask = segmenter.segment(preprocessed.normalized_rgb)
         mask = postprocess_mask(raw_mask)
-        features = extract_morphological_features(mask)
+        segment_count = count_nucleus_segments(mask, config=self.segment_count_config)
+        features = extract_morphological_features(mask, segment_count=segment_count)
         classification = classify_neutrophil(features)
 
         mask_path = save_mask(mask, artifacts_dir / "nucleus_mask.png")
@@ -84,6 +89,18 @@ class NeutrophilAnalysisPipeline:
                 report_markdown=relative_artifact(report_markdown_path),
                 log_file=relative_artifact(log_path),
             ),
+            metadata=PipelineMetadata(
+                pipeline_version=self.version,
+                segmenter_name=segmenter.name,
+                classifier_name="rule_based_segment_count",
+                postprocessing={
+                    "segment_min_area_px": self.segment_count_config.min_segment_area_px,
+                    "segment_min_peak_distance_px": (
+                        self.segment_count_config.min_peak_distance_px
+                    ),
+                    "watershed_compactness": self.segment_count_config.watershed_compactness,
+                },
+            ),
         )
         save_report_json(result, report_json_path)
         save_report_markdown(result, report_markdown_path)
@@ -95,4 +112,3 @@ class NeutrophilAnalysisPipeline:
             result.features.nucleus_segments,
         )
         return result
-
