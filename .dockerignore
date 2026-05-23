@@ -1,0 +1,17 @@
+.git
+.idea
+.venv
+venv
+__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+data/raw
+data/interim
+data/processed
+outputs
+models/*.pt
+models/*.pth
+frontend/node_modules
+frontend/dist
+
