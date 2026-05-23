@@ -122,7 +122,11 @@ def _load_samples_from_csv(csv_file: Path, data_root: Path | None = None) -> lis
     samples: list[DatasetSample] = []
     for row in dataframe.itertuples(index=False):
         raw_path = Path(str(row.image_path))
-        image_path = raw_path.resolve() if raw_path.is_absolute() else (base_dir / raw_path).resolve()
+        image_path = (
+            raw_path.resolve()
+            if raw_path.is_absolute()
+            else (base_dir / raw_path).resolve()
+        )
         label = str(row.label)
         samples.append(
             DatasetSample(

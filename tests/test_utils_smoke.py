@@ -10,14 +10,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.utils.config import load_yaml_config
-from src.utils.io import ensure_dir, read_json, write_json
-from src.utils.logger import get_logger
-from src.utils.seed import set_seed
-
 
 def main() -> None:
     """Run a basic end-to-end check of config, logging, JSON, and seeding."""
+
+    from src.utils.config import load_yaml_config
+    from src.utils.io import ensure_dir, read_json, write_json
+    from src.utils.logger import get_logger
+    from src.utils.seed import set_seed
 
     project_root = PROJECT_ROOT
     config_path = project_root / "configs" / "smoke_test.yaml"

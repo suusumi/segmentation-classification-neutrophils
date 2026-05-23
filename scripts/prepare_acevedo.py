@@ -13,8 +13,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.datasets.acevedo_dataset import to_binary_label
-
 
 IMAGE_EXTENSIONS = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
@@ -55,6 +53,12 @@ def parse_args() -> argparse.Namespace:
         default=42,
         help="Random seed used for stratified splitting.",
     )
+    parser.add_argument(
+        "--relative_to",
+        type=Path,
+        default=PROJECT_ROOT,
+        help="Base directory used to store portable relative image paths.",
+    )
     return parser.parse_args()
 
 
@@ -64,7 +68,16 @@ def _is_image_file(path: Path) -> bool:
     return path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
 
 
-def _scan_dataset(input_dir: Path) -> pd.DataFrame:
+def _portable_image_path(image_path: Path, relative_to: Path) -> str:
+    """Return a portable POSIX-style image path for CSV output."""
+
+    try:
+        return image_path.resolve().relative_to(relative_to.resolve()).as_posix()
+    except ValueError:
+        return image_path.resolve().as_posix()
+
+
+def _scan_dataset(input_dir: Path, relative_to: Path = PROJECT_ROOT) -> pd.DataFrame:
     """Scan a folder-per-class dataset into a dataframe.
 
     Args:
@@ -73,6 +86,8 @@ def _scan_dataset(input_dir: Path) -> pd.DataFrame:
     Returns:
         Dataframe with columns ``image_path``, ``label``, and ``binary_label``.
     """
+
+    from src.datasets.acevedo_dataset import to_binary_label
 
     if not input_dir.exists():
         raise FileNotFoundError(f"Input dataset directory does not exist: {input_dir}")
@@ -92,7 +107,7 @@ def _scan_dataset(input_dir: Path) -> pd.DataFrame:
         for image_path in image_paths:
             records.append(
                 {
-                    "image_path": str(image_path.resolve()),
+                    "image_path": _portable_image_path(image_path, relative_to),
                     "label": label,
                     "binary_label": to_binary_label(label),
                 }
@@ -176,8 +191,9 @@ def main() -> None:
     args = parse_args()
     input_dir = args.input_dir.resolve()
     output_dir = args.output_dir.resolve()
+    relative_to = args.relative_to.resolve()
 
-    dataframe = _scan_dataset(input_dir)
+    dataframe = _scan_dataset(input_dir, relative_to=relative_to)
     train_df, val_df, test_df = create_splits(
         dataframe=dataframe,
         val_size=args.val_size,
