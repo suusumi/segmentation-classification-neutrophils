@@ -1,12 +1,17 @@
 albumentations>=1.4,<3.0
+fastapi>=0.111,<1.0
 numpy>=1.26,<3.0
 opencv-python>=4.9,<5.0
 pandas>=2.2,<3.0
 Pillow>=10.0,<12.0
+pydantic>=2.7,<3.0
+python-multipart>=0.0.9,<1.0
 PyYAML>=6.0,<7.0
+scipy>=1.11,<2.0
 scikit-image>=0.22,<1.0
 scikit-learn>=1.4,<2.0
 torch>=2.2,<3.0
 torchvision>=0.17,<1.0
 tqdm>=4.66,<5.0
 typer>=0.12,<1.0
+uvicorn[standard]>=0.29,<1.0
