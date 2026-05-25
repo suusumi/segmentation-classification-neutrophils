@@ -75,6 +75,27 @@ input {
   display: none;
 }
 
+.preview-card {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(20, 32, 28, 0.12);
+  background: #fff;
+}
+
+.preview-card img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background: #eef3ef;
+}
+
+.preview-card figcaption {
+  color: #5c6864;
+  font-size: 13px;
+}
+
 .primary-button {
   display: inline-flex;
   align-items: center;
@@ -154,11 +175,99 @@ input {
   font-size: 20px;
 }
 
+.visual-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.artifact-card {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(20, 32, 28, 0.12);
+  background: #fff;
+}
+
+.artifact-image-frame {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  background:
+    linear-gradient(45deg, rgba(20, 32, 28, 0.035) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(20, 32, 28, 0.035) 25%, transparent 25%),
+    #f8faf7;
+  background-size: 18px 18px;
+}
+
+.artifact-card img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.artifact-card figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #273733;
+  font-weight: 700;
+}
+
+.feature-panel {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid rgba(20, 32, 28, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.feature-panel h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.feature-list {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px 12px;
+}
+
+.feature-list span {
+  color: #5c6864;
+  font-size: 13px;
+}
+
+.feature-list strong {
+  font-size: 17px;
+}
+
+.feature-panel p {
+  margin: 16px 0 0;
+  color: #273733;
+  line-height: 1.5;
+}
+
+.report-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.report-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #1c5d63;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .json-view {
-  grid-column: 1 / -1;
   overflow: auto;
   max-height: 420px;
-  margin: 8px 0 0;
+  margin: 18px 0 0;
   padding: 16px;
   background: #13211f;
   color: #e7f1eb;
@@ -205,6 +314,14 @@ input {
   .result-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .visual-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-list {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 520px) {
@@ -212,4 +329,3 @@ input {
     grid-template-columns: 1fr;
   }
 }
-

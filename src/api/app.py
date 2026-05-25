@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 
 from src.api.schemas import AnalysisResponse, ErrorResponse, HealthResponse
 from src.core.paths import PATHS, project_path
@@ -81,8 +83,25 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Analysis report file not found.")
         return report_path.read_text(encoding="utf-8")
 
+    @fastapi_app.get("/artifacts/{artifact_path:path}")
+    async def get_artifact(artifact_path: str) -> FileResponse:
+        requested_path = Path(artifact_path)
+        if requested_path.parts[:1] == ("outputs",):
+            artifact_file = project_path(requested_path)
+        else:
+            artifact_file = PATHS.outputs / requested_path
+
+        artifact_file = artifact_file.resolve()
+        try:
+            artifact_file.relative_to(PATHS.outputs.resolve())
+        except ValueError as error:
+            raise HTTPException(status_code=404, detail="Artifact not found.") from error
+
+        if not artifact_file.is_file():
+            raise HTTPException(status_code=404, detail="Artifact not found.")
+        return FileResponse(artifact_file)
+
     return fastapi_app
 
 
 app = create_app()
-

@@ -42,3 +42,7 @@ def test_analysis_endpoint_accepts_image(tmp_path: Path) -> None:
     assert payload["classification"]["label"] in {"normal", "hypersegmentation", "unknown"}
     assert payload["artifacts"]["mask_image"].endswith("nucleus_mask.png")
     assert payload["metadata"]["segmenter_name"] == "threshold"
+
+    artifact_response = client.get(f"/artifacts/{payload['artifacts']['mask_image']}")
+    assert artifact_response.status_code == 200
+    assert artifact_response.headers["content-type"] == "image/png"
