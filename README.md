@@ -123,6 +123,17 @@ Implemented now:
 - Mask, overlay, JSON report, Markdown report, and log file persistence.
 - SQLite metadata store at `data/processed/analysis/analysis.sqlite3`.
 
+## Annotation Workflow
+
+Generate pseudo-label masks for manual review with:
+
+```bash
+python scripts/export_pseudo_masks.py
+```
+
+The generated annotation dataset is written to `data/processed/nucleus_segmentation/pseudo_labels`.
+See `docs/annotation-workflow.md` for the manual mask correction workflow.
+
 Prepared extension points:
 
 - `src.models.UNet` defines the U-Net architecture.
@@ -167,4 +178,3 @@ Frontend: http://localhost:5173
 ```
 
 The compose file mounts `data`, `models`, and `outputs` so local datasets, weights, and analysis results survive container restarts.
-
