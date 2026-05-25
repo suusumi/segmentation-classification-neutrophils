@@ -15,7 +15,12 @@ from src.pipeline.artifacts import (
 )
 from src.pipeline.classification import classify_neutrophil
 from src.pipeline.features import extract_morphological_features
-from src.pipeline.postprocessing import postprocess_mask
+from src.pipeline.postprocessing import (
+    DEFAULT_BORDER_MARGIN_PX,
+    DEFAULT_CLUSTER_DISTANCE_FRACTION,
+    DEFAULT_CLUSTER_MIN_AREA_RATIO,
+    postprocess_mask,
+)
 from src.pipeline.preprocessing import preprocess_image
 from src.pipeline.result import AnalysisArtifacts, AnalysisResult, PipelineMetadata
 from src.pipeline.segment_counting import SegmentCountConfig, count_nucleus_segments
@@ -99,6 +104,9 @@ class NeutrophilAnalysisPipeline:
                         self.segment_count_config.min_peak_distance_px
                     ),
                     "watershed_compactness": self.segment_count_config.watershed_compactness,
+                    "border_margin_px": DEFAULT_BORDER_MARGIN_PX,
+                    "cluster_distance_fraction": DEFAULT_CLUSTER_DISTANCE_FRACTION,
+                    "cluster_min_area_ratio": DEFAULT_CLUSTER_MIN_AREA_RATIO,
                 },
             ),
         )

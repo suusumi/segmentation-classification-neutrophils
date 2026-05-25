@@ -10,6 +10,7 @@ from PIL import Image, ImageDraw
 from src.pipeline.classification import classify_neutrophil
 from src.pipeline.features import extract_morphological_features
 from src.pipeline.pipeline import NeutrophilAnalysisPipeline
+from src.pipeline.postprocessing import postprocess_mask
 from src.pipeline.segment_counting import SegmentCountConfig, count_nucleus_segments
 
 
@@ -62,6 +63,32 @@ def test_segment_counting_splits_components() -> None:
     assert result.segment_count == 3
     assert result.segment_area_min_px > 0
     assert result.segment_area_max_px >= result.segment_area_min_px
+
+
+def test_postprocessing_removes_border_artifacts() -> None:
+    mask = np.zeros((96, 96), dtype=bool)
+    mask[2:10, 2:10] = True
+    mask[40:58, 40:58] = True
+
+    cleaned = postprocess_mask(mask, border_margin_px=8)
+
+    assert not cleaned[2:10, 2:10].any()
+    assert cleaned[40:58, 40:58].any()
+
+
+def test_postprocessing_removes_distant_same_color_artifacts() -> None:
+    mask = np.zeros((128, 128), dtype=bool)
+    mask[52:76, 52:76] = True
+    mask[58:78, 78:98] = True
+    mask[104:112, 104:112] = True
+    mask[108:116, 12:20] = True
+
+    cleaned = postprocess_mask(mask)
+
+    assert cleaned[52:76, 52:76].any()
+    assert cleaned[58:78, 78:98].any()
+    assert not cleaned[104:112, 104:112].any()
+    assert not cleaned[108:116, 12:20].any()
 
 
 def test_features_and_classifier_detect_hypersegmentation() -> None:
