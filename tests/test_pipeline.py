@@ -30,7 +30,7 @@ def test_pipeline_writes_artifacts(tmp_path: Path) -> None:
     output_dir = tmp_path / "analysis"
     _create_synthetic_neutrophil(image_path)
 
-    result = NeutrophilAnalysisPipeline().run(
+    result = NeutrophilAnalysisPipeline(segmenter_name="threshold").run(
         analysis_id="test-analysis",
         image_path=image_path,
         output_dir=output_dir,

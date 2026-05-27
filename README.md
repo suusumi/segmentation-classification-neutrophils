@@ -141,6 +141,47 @@ Prepared extension points:
 - `UNetNucleusSegmenter` is ready for trained weights in `models/unet_nucleus.pt`.
 - `detection.YOLONeutrophilDetector` defines the future full-smear detection boundary.
 
+## U-Net Nucleus Training
+
+Convert corrected CVAT masks into a curated image/mask dataset:
+
+```bash
+python scripts/convert_cvat_nucleus_export.py --overwrite
+```
+
+The curated dataset is written to:
+
+```text
+data/processed/nucleus_segmentation/curated/
+  images/{train,val,test}/
+  masks/{train,val,test}/
+  manifest.csv
+```
+
+Train the first U-Net nucleus segmenter:
+
+```bash
+python scripts/train_unet_nucleus.py \
+  --epochs 40 \
+  --batch-size 8 \
+  --image-size 256 \
+  --weights-path models/unet_nucleus.pt
+```
+
+After `models/unet_nucleus.pt` exists, configure the pipeline with
+`SEGMENTER_NAME=unet` to force the trained model instead of the threshold
+baseline. By default, `SEGMENTER_NAME=auto`: the application uses
+`models/unet_nucleus.pt` when it exists and falls back to the threshold
+segmenter when it does not.
+
+On Windows PowerShell:
+
+```powershell
+$env:SEGMENTER_NAME = "unet"
+$env:UNET_WEIGHTS_PATH = "models/unet_nucleus.pt"
+uvicorn src.api.app:app --reload
+```
+
 ## Database Choice
 
 Use SQLite for the first stage. It is built into Python, cross-platform, requires no server, and is enough for local development, demos, and single-machine deployments.

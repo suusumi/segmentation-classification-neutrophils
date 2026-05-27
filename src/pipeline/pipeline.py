@@ -39,9 +39,14 @@ class NeutrophilAnalysisPipeline:
         self.segment_count_config = SegmentCountConfig()
 
     def _build_segmenter(self):
-        if self.segmenter_name == "threshold":
+        segmenter_name = self.segmenter_name.strip().lower()
+        if segmenter_name == "auto":
+            if SETTINGS.unet_weights_path.is_file():
+                return UNetNucleusSegmenter(weights_path=SETTINGS.unet_weights_path)
             return ThresholdNucleusSegmenter()
-        if self.segmenter_name == "unet":
+        if segmenter_name == "threshold":
+            return ThresholdNucleusSegmenter()
+        if segmenter_name == "unet":
             return UNetNucleusSegmenter(weights_path=SETTINGS.unet_weights_path)
         raise PipelineError(f"Unknown segmenter: {self.segmenter_name}")
 
