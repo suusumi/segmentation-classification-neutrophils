@@ -98,3 +98,17 @@ image -> nucleus mask
 ```
 
 Эти две задачи связаны, но это разные типы ground truth.
+
+## CVAT batch
+
+Подробная инструкция для CVAT лежит в:
+
+```text
+docs/cvat-workflow.md
+```
+
+Подготовить первую партию на 200 изображений:
+
+```bash
+python scripts/prepare_cvat_batch.py --batch-name batch_001 --limit 200 --split train
+```

@@ -133,6 +133,7 @@ python scripts/export_pseudo_masks.py
 
 The generated annotation dataset is written to `data/processed/nucleus_segmentation/pseudo_labels`.
 See `docs/annotation-workflow.md` for the manual mask correction workflow.
+For CVAT batch preparation, see `docs/cvat-workflow.md`.
 
 Prepared extension points:
 
