@@ -134,6 +134,7 @@ python scripts/export_pseudo_masks.py
 The generated annotation dataset is written to `data/processed/nucleus_segmentation/pseudo_labels`.
 See `docs/annotation-workflow.md` for the manual mask correction workflow.
 For CVAT batch preparation, see `docs/cvat-workflow.md`.
+For separate nucleus-lobe annotation, see `docs/lobe-annotation-workflow.md`.
 
 Prepared extension points:
 
@@ -180,6 +181,30 @@ On Windows PowerShell:
 $env:SEGMENTER_NAME = "unet"
 $env:UNET_WEIGHTS_PATH = "models/unet_nucleus.pt"
 uvicorn src.api.app:app --reload
+```
+
+## Nucleus Lobe Dataset
+
+The U-Net model above predicts the whole nucleus. Separate lobe counting needs
+instance-level annotations: one `nucleus_lobe` object per visible nucleus
+segment. Export CVAT annotations as COCO Instance Segmentation, then convert:
+
+```bash
+python scripts/convert_cvat_lobes_export.py \
+  --cvat-dir data/cvat_lobes \
+  --source-images-dir data/raw/acevedo/neutrophil \
+  --output-dir data/processed/nucleus_lobes/curated \
+  --label nucleus_lobe \
+  --overwrite
+```
+
+The output manifest contains `segment_count` and per-image instance masks under
+`data/processed/nucleus_lobes/curated/lobe_instance_masks`.
+
+Optional auto-preannotations for CVAT review can be generated with:
+
+```bash
+python scripts/export_lobe_preannotations.py
 ```
 
 ## Database Choice
