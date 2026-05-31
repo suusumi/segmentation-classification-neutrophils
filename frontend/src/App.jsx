@@ -81,7 +81,12 @@ function App() {
     formData.append("file", file);
 
     try {
-      const endpoint = analysisMode === "lobe-debug" ? "/analysis/lobe-debug" : "/analysis";
+      const endpoints = {
+        pipeline: "/analysis",
+        "lobe-debug": "/analysis/lobe-debug",
+        yolo: "/analysis/yolo",
+      };
+      const endpoint = endpoints[analysisMode] ?? "/analysis";
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         body: formData,
@@ -142,6 +147,16 @@ function App() {
                   onChange={(event) => setAnalysisMode(event.target.value)}
                 />
                 <span>Lobe only</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="analysis-mode"
+                  value="yolo"
+                  checked={analysisMode === "yolo"}
+                  onChange={(event) => setAnalysisMode(event.target.value)}
+                />
+                <span>YOLO lobes</span>
               </label>
             </div>
             <button className="primary-button" type="submit" disabled={isLoading}>

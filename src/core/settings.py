@@ -89,6 +89,23 @@ class AppSettings:
     lobe_min_segment_area_px: int = field(
         default_factory=lambda: _env_int("LOBE_MIN_SEGMENT_AREA_PX", 64)
     )
+    yolo_lobe_weights_path: Path = field(
+        default_factory=lambda: _env_path(
+            "YOLO_LOBE_WEIGHTS_PATH",
+            project_path("models", "yolo_lobes_seg.pt"),
+        )
+    )
+    yolo_lobe_confidence: float = field(
+        default_factory=lambda: _env_float("YOLO_LOBE_CONFIDENCE", 0.40)
+    )
+    yolo_lobe_iou: float = field(default_factory=lambda: _env_float("YOLO_LOBE_IOU", 0.30))
+    yolo_lobe_image_size: int = field(
+        default_factory=lambda: _env_int("YOLO_LOBE_IMAGE_SIZE", 640)
+    )
+    yolo_lobe_min_mask_area_px: int = field(
+        default_factory=lambda: _env_int("YOLO_LOBE_MIN_MASK_AREA_PX", 16)
+    )
+    yolo_lobe_device: str = field(default_factory=lambda: _env_str("YOLO_LOBE_DEVICE", "auto"))
 
 
 SETTINGS = AppSettings()

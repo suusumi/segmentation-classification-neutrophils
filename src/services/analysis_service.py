@@ -141,6 +141,62 @@ class AnalysisService:
         )
         return result_payload
 
+    def run_uploaded_image_with_yolo_lobes(
+        self,
+        filename: str,
+        content_type: str | None,
+        content: bytes,
+    ) -> dict:
+        """Run analysis with YOLO-seg as the lobe counter."""
+
+        self._validate_upload_metadata(
+            filename=filename,
+            content_type=content_type,
+            content=content,
+        )
+        safe_filename = self._safe_filename(filename)
+
+        analysis_id = uuid4().hex
+        analysis_dir = PATHS.analyses / analysis_id
+        input_dir = analysis_dir / "input"
+        input_dir.mkdir(parents=True, exist_ok=True)
+
+        extension = Path(safe_filename).suffix.lower()
+        image_path = input_dir / f"original{extension}"
+        image_path.write_bytes(content)
+        self._validate_image_bytes(image_path)
+
+        self.repository.create(
+            analysis_id=analysis_id,
+            input_filename=safe_filename,
+            status="running",
+        )
+        self.logger.info("Created YOLO lobe analysis %s for %s", analysis_id, safe_filename)
+
+        try:
+            yolo_pipeline = NeutrophilAnalysisPipeline(
+                segmenter_name="threshold",
+                lobe_counter_name="yolo_lobes_seg",
+            )
+            result = yolo_pipeline.run(
+                analysis_id=analysis_id,
+                image_path=image_path,
+                output_dir=analysis_dir,
+                input_filename=safe_filename,
+            )
+        except Exception as error:
+            self.repository.update_status(analysis_id=analysis_id, status="failed")
+            self.logger.exception("YOLO lobe analysis %s failed", analysis_id)
+            raise PipelineError(str(error)) from error
+
+        result_payload = result.to_dict()
+        self.repository.update_result(
+            analysis_id=analysis_id,
+            status="completed",
+            result=result_payload,
+        )
+        return result_payload
+
     def get_analysis(self, analysis_id: str) -> dict:
         """Return persisted analysis metadata and result."""
 

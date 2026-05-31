@@ -9,6 +9,7 @@ from typing import Any, Protocol, cast
 import numpy as np
 import torch
 import torch.nn.functional as torch_functional
+from PIL import Image
 from skimage.measure import regionprops
 
 from src.models import UNet
@@ -196,6 +197,131 @@ class UNetLobeBoundaryCounter:
             mode="nearest",
         )
         return torch.cat([image_tensor, mask_tensor], dim=1)
+
+
+@dataclass
+class YOLOLobeInstanceCounter:
+    """Ultralytics YOLO-seg adapter that counts one predicted mask per nucleus lobe."""
+
+    weights_path: Path
+    name: str = "yolo_lobes_seg"
+    confidence: float = 0.40
+    iou: float = 0.30
+    image_size: int = 640
+    min_mask_area_px: int = 16
+    device_name: str = "auto"
+    _model: Any | None = field(default=None, init=False, repr=False)
+
+    def count(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> LobeCountResult:
+        """Run YOLO lobe instance segmentation and return countable components."""
+
+        del nucleus_mask
+        if rgb_image.ndim != 3 or rgb_image.shape[2] != 3:
+            raise PipelineError("Expected RGB image for YOLO lobe segmentation.")
+        if not self.weights_path.is_file():
+            raise PipelineError(
+                "YOLO lobe weights are not available yet. "
+                "Train models/yolo_lobes_seg.pt or set YOLO_LOBE_WEIGHTS_PATH."
+            )
+
+        model = self._load_model()
+        predict_kwargs: dict[str, Any] = {
+            "source": Image.fromarray(rgb_image.astype(np.uint8)),
+            "imgsz": self.image_size,
+            "conf": self.confidence,
+            "iou": self.iou,
+            "stream": False,
+            "verbose": False,
+        }
+        device = self._device_argument()
+        if device is not None:
+            predict_kwargs["device"] = device
+
+        try:
+            results = list(model.predict(**predict_kwargs))
+        except Exception as error:
+            raise PipelineError("YOLO lobe inference failed.") from error
+        if not results:
+            raise PipelineError("YOLO lobe inference returned no results.")
+
+        split_mask = self._result_to_labeled_mask(results[0], shape=rgb_image.shape[:2])
+        return LobeCountResult(
+            segment_count=_segment_count_from_labeled_mask(split_mask),
+            foreground_mask=split_mask > 0,
+            split_mask=split_mask,
+        )
+
+    def _load_model(self) -> Any:
+        """Load and cache the Ultralytics model."""
+
+        if self._model is not None:
+            return self._model
+        try:
+            from ultralytics import YOLO
+        except ImportError as error:
+            raise PipelineError(
+                "Ultralytics is not installed. Install it with "
+                ".\\.venv\\Scripts\\python.exe -m pip install ultralytics"
+            ) from error
+
+        try:
+            self._model = YOLO(self.weights_path.as_posix())
+        except Exception as error:
+            raise PipelineError(f"Could not load YOLO lobe weights: {self.weights_path}") from error
+        return self._model
+
+    def _device_argument(self) -> str | None:
+        """Return an Ultralytics device argument."""
+
+        if self.device_name == "auto":
+            return "0" if torch.cuda.is_available() else "cpu"
+        return self.device_name
+
+    def _result_to_labeled_mask(self, result: Any, shape: tuple[int, int]) -> np.ndarray:
+        """Convert Ultralytics masks into a labeled component image."""
+
+        height, width = shape
+        labeled = np.zeros((height, width), dtype=np.int32)
+        masks = getattr(result, "masks", None)
+        data = getattr(masks, "data", None) if masks is not None else None
+        if data is None:
+            return labeled
+
+        mask_array = data.detach().cpu().numpy()
+        if mask_array.ndim != 3:
+            return labeled
+
+        boxes = getattr(result, "boxes", None)
+        confidences = getattr(boxes, "conf", None) if boxes is not None else None
+        if confidences is None:
+            confidence_values = np.ones(mask_array.shape[0], dtype=np.float32)
+        else:
+            confidence_values = confidences.detach().cpu().numpy().astype(np.float32)
+
+        instances: list[tuple[float, np.ndarray]] = []
+        for index, raw_mask in enumerate(mask_array):
+            mask = self._resize_mask(raw_mask > 0.5, size=(width, height))
+            area = int(mask.sum())
+            if area < self.min_mask_area_px:
+                continue
+            confidence = float(confidence_values[index]) if index < len(confidence_values) else 0.0
+            instances.append((confidence, mask))
+
+        for label_value, (_, mask) in enumerate(
+            sorted(instances, key=lambda item: item[0], reverse=True),
+            start=1,
+        ):
+            labeled[np.logical_and(mask, labeled == 0)] = label_value
+        return labeled
+
+    @staticmethod
+    def _resize_mask(mask: np.ndarray, size: tuple[int, int]) -> np.ndarray:
+        """Resize a binary mask to ``(width, height)`` with nearest neighbor."""
+
+        if mask.shape == (size[1], size[0]):
+            return mask.astype(bool)
+        image = Image.fromarray(mask.astype(np.uint8) * 255)
+        return np.asarray(image.resize(size, resample=Image.Resampling.NEAREST)) > 0
 
 
 def _segment_count_from_labeled_mask(labeled_mask: np.ndarray) -> SegmentCountResult:

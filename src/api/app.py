@@ -66,6 +66,15 @@ def create_app() -> FastAPI:
             content=content,
         )
 
+    @fastapi_app.post("/analysis/yolo", response_model=AnalysisResponse)
+    async def analyze_lobes_with_yolo(file: UploadFile = File(...)) -> dict:
+        content = await file.read()
+        return service.run_uploaded_image_with_yolo_lobes(
+            filename=file.filename or "",
+            content_type=file.content_type,
+            content=content,
+        )
+
     @fastapi_app.get("/analysis/{analysis_id}")
     async def get_analysis(analysis_id: str) -> dict:
         return service.get_analysis(analysis_id)

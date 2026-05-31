@@ -135,6 +135,7 @@ The generated annotation dataset is written to `data/processed/nucleus_segmentat
 See `docs/annotation-workflow.md` for the manual mask correction workflow.
 For CVAT batch preparation, see `docs/cvat-workflow.md`.
 For separate nucleus-lobe annotation, see `docs/lobe-annotation-workflow.md`.
+For YOLO lobe instance training and CVAT preannotations, see `docs/yolo-lobe-workflow.md`.
 
 Prepared extension points:
 
@@ -271,6 +272,70 @@ python scripts/evaluate_lobe_boundary_unet.py \
   --min-segment-area-px 64 \
   --output-dir outputs/lobe_boundary_eval/test
 ```
+
+## YOLO Lobe Instance Segmentation Experiment
+
+YOLO-seg is an experimental alternative for lobe counting. It predicts one
+instance mask per visible nucleus lobe, so the count is the number of predicted
+`nucleus_lobe` masks. This path does not require the first whole-nucleus U-Net
+as an input stage.
+
+Install the optional YOLO dependency:
+
+```bash
+pip install ".[yolo]"
+```
+
+On Windows PowerShell, if editable extras are awkward in the current
+environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install ultralytics
+```
+
+Export the curated lobe dataset to Ultralytics YOLO segmentation format:
+
+```bash
+python scripts/prepare_yolo_lobes_dataset.py \
+  --manifest data/processed/nucleus_lobes/curated/manifest.csv \
+  --output-dir data/processed/nucleus_lobes/yolo_seg \
+  --overwrite
+```
+
+Train a small segmentation model:
+
+```bash
+python scripts/train_yolo_lobes.py \
+  --data-yaml data/processed/nucleus_lobes/yolo_seg/data.yaml \
+  --model yolo11n-seg.pt \
+  --epochs 100 \
+  --image-size 640 \
+  --batch-size 8 \
+  --device 0 \
+  --weights-path models/yolo_lobes_seg.pt
+```
+
+Evaluate with the same count metrics used by the lobe U-Net baselines:
+
+```bash
+python scripts/evaluate_yolo_lobes.py \
+  --split test \
+  --weights-path models/yolo_lobes_seg.pt \
+  --output-dir outputs/yolo_lobes_eval/test \
+  --save-plots
+```
+
+After a first YOLO model exists, generate draft CVAT annotations for new images:
+
+```bash
+python scripts/export_yolo_lobe_preannotations.py \
+  --images-dir data/processed/nucleus_segmentation/cvat_batches/batch_001/images \
+  --weights-path models/yolo_lobes_seg.pt \
+  --output-zip data/processed/nucleus_lobes/yolo_preannotations.zip
+```
+
+Import the ZIP into CVAT as COCO Instance Segmentation and correct the predicted
+polygons instead of drawing every lobe from scratch.
 
 ## Database Choice
 

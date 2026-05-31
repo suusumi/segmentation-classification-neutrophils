@@ -20,7 +20,11 @@ from src.pipeline.artifacts import (
 )
 from src.pipeline.classification import classify_neutrophil
 from src.pipeline.features import extract_morphological_features
-from src.pipeline.lobe_counting import UNetLobeBoundaryCounter, WatershedLobeCounter
+from src.pipeline.lobe_counting import (
+    UNetLobeBoundaryCounter,
+    WatershedLobeCounter,
+    YOLOLobeInstanceCounter,
+)
 from src.pipeline.postprocessing import (
     DEFAULT_BORDER_MARGIN_PX,
     DEFAULT_CLUSTER_DISTANCE_FRACTION,
@@ -90,6 +94,15 @@ class NeutrophilAnalysisPipeline:
                 foreground_threshold=SETTINGS.lobe_foreground_threshold,
                 boundary_threshold=SETTINGS.lobe_boundary_threshold,
                 min_segment_area_px=SETTINGS.lobe_min_segment_area_px,
+            )
+        if lobe_counter_name in {"yolo", "yolo_lobes", "yolo_lobes_seg"}:
+            return YOLOLobeInstanceCounter(
+                weights_path=SETTINGS.yolo_lobe_weights_path,
+                confidence=SETTINGS.yolo_lobe_confidence,
+                iou=SETTINGS.yolo_lobe_iou,
+                image_size=SETTINGS.yolo_lobe_image_size,
+                min_mask_area_px=SETTINGS.yolo_lobe_min_mask_area_px,
+                device_name=SETTINGS.yolo_lobe_device,
             )
         raise PipelineError(f"Unknown lobe counter: {self.lobe_counter_name}")
 
@@ -246,6 +259,14 @@ class NeutrophilAnalysisPipeline:
                     ),
                     "lobe_boundary_threshold": getattr(lobe_counter, "boundary_threshold", None),
                     "lobe_min_segment_area_px": getattr(lobe_counter, "min_segment_area_px", None),
+                    "yolo_lobe_confidence": getattr(lobe_counter, "confidence", None),
+                    "yolo_lobe_iou": getattr(lobe_counter, "iou", None),
+                    "yolo_lobe_image_size": getattr(lobe_counter, "image_size", None),
+                    "yolo_lobe_min_mask_area_px": getattr(
+                        lobe_counter,
+                        "min_mask_area_px",
+                        None,
+                    ),
                     "border_margin_px": DEFAULT_BORDER_MARGIN_PX,
                     "cluster_distance_fraction": DEFAULT_CLUSTER_DISTANCE_FRACTION,
                     "cluster_min_area_ratio": DEFAULT_CLUSTER_MIN_AREA_RATIO,
