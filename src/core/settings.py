@@ -29,6 +29,24 @@ def _env_str(name: str, default: str) -> str:
     return normalized or default
 
 
+def _env_float(name: str, default: float) -> float:
+    """Read a float setting from the environment."""
+
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return float(value)
+
+
+def _env_int(name: str, default: int) -> int:
+    """Read an integer setting from the environment."""
+
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return int(value)
+
+
 @dataclass(frozen=True)
 class AppSettings:
     """Runtime settings for API and pipeline components."""
@@ -55,8 +73,23 @@ class AppSettings:
         )
     )
     segmenter_name: str = field(default_factory=lambda: _env_str("SEGMENTER_NAME", "auto"))
+    lobe_boundary_weights_path: Path = field(
+        default_factory=lambda: _env_path(
+            "LOBE_BOUNDARY_WEIGHTS_PATH",
+            project_path("models", "lobe_boundary_unet_mixed.pt"),
+        )
+    )
+    lobe_counter_name: str = field(default_factory=lambda: _env_str("LOBE_COUNTER_NAME", "auto"))
+    lobe_foreground_threshold: float = field(
+        default_factory=lambda: _env_float("LOBE_FOREGROUND_THRESHOLD", 0.5)
+    )
+    lobe_boundary_threshold: float = field(
+        default_factory=lambda: _env_float("LOBE_BOUNDARY_THRESHOLD", 0.2)
+    )
+    lobe_min_segment_area_px: int = field(
+        default_factory=lambda: _env_int("LOBE_MIN_SEGMENT_AREA_PX", 64)
+    )
 
 
 SETTINGS = AppSettings()
 PATHS.ensure_runtime_dirs()
-

@@ -33,6 +33,57 @@ def save_overlay(rgb_image: np.ndarray, mask: np.ndarray, path: Path) -> Path:
     return path
 
 
+def save_labeled_mask(mask: np.ndarray, path: Path) -> Path:
+    """Save labeled components with a deterministic color palette."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    palette = np.asarray(
+        [
+            [0, 0, 0],
+            [220, 30, 30],
+            [30, 160, 220],
+            [40, 190, 90],
+            [230, 180, 40],
+            [160, 90, 230],
+            [240, 100, 160],
+            [70, 210, 190],
+        ],
+        dtype=np.uint8,
+    )
+    colored = palette[np.mod(mask.astype(np.int32), len(palette))]
+    Image.fromarray(colored).save(path)
+    return path
+
+
+def save_lobe_overlay(
+    rgb_image: np.ndarray,
+    split_mask: np.ndarray,
+    boundary_mask: np.ndarray,
+    path: Path,
+) -> Path:
+    """Save colored lobe components and white predicted boundaries over the image."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    base = Image.fromarray(rgb_image.astype(np.uint8)).convert("RGBA")
+    palette = np.asarray(
+        [
+            [0, 0, 0, 0],
+            [220, 30, 30, 120],
+            [30, 160, 220, 120],
+            [40, 190, 90, 120],
+            [230, 180, 40, 120],
+            [160, 90, 230, 120],
+            [240, 100, 160, 120],
+            [70, 210, 190, 120],
+        ],
+        dtype=np.uint8,
+    )
+    overlay = palette[np.mod(split_mask.astype(np.int32), len(palette))]
+    overlay[boundary_mask.astype(bool)] = [255, 255, 255, 210]
+    Image.alpha_composite(base, Image.fromarray(overlay)).save(path)
+    return path
+
+
 def save_report_json(result: AnalysisResult, path: Path) -> Path:
     """Persist the complete result as JSON."""
 
@@ -70,12 +121,17 @@ def save_report_markdown(result: AnalysisResult, path: Path) -> Path:
             "## Pipeline",
             f"- Version: {result.metadata.pipeline_version}",
             f"- Segmenter: {result.metadata.segmenter_name}",
+            f"- Lobe counter: {result.metadata.lobe_counter_name}",
             f"- Classifier: {result.metadata.classifier_name}",
             "",
             "## Artifacts",
             f"- Original: {result.artifacts.original_image}",
             f"- Mask: {result.artifacts.mask_image}",
             f"- Overlay: {result.artifacts.overlay_image}",
+            f"- Lobe foreground: {result.artifacts.lobe_foreground_image}",
+            f"- Lobe boundary: {result.artifacts.lobe_boundary_image}",
+            f"- Lobe components: {result.artifacts.lobe_components_image}",
+            f"- Lobe overlay: {result.artifacts.lobe_overlay_image}",
             f"- JSON: {result.artifacts.report_json}",
             f"- Log: {result.artifacts.log_file}",
             "",

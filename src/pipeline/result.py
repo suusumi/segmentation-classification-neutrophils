@@ -50,6 +50,10 @@ class AnalysisArtifacts:
     report_json: str
     report_markdown: str
     log_file: str
+    lobe_foreground_image: str | None = None
+    lobe_boundary_image: str | None = None
+    lobe_components_image: str | None = None
+    lobe_overlay_image: str | None = None
 
 
 @dataclass(frozen=True)
@@ -58,6 +62,7 @@ class PipelineMetadata:
 
     pipeline_version: str
     segmenter_name: str
+    lobe_counter_name: str
     classifier_name: str
     postprocessing: dict[str, Any]
 

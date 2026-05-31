@@ -41,7 +41,9 @@ def test_analysis_endpoint_accepts_image(tmp_path: Path) -> None:
     assert payload["status"] == "completed"
     assert payload["classification"]["label"] in {"normal", "hypersegmentation", "unknown"}
     assert payload["artifacts"]["mask_image"].endswith("nucleus_mask.png")
+    assert payload["artifacts"]["lobe_components_image"].endswith("lobe_components.png")
     assert payload["metadata"]["segmenter_name"] in {"threshold", "unet"}
+    assert payload["metadata"]["lobe_counter_name"] in {"watershed", "lobe_boundary_unet"}
 
     artifact_response = client.get(f"/artifacts/{payload['artifacts']['mask_image']}")
     assert artifact_response.status_code == 200

@@ -96,6 +96,29 @@ input {
   font-size: 13px;
 }
 
+.mode-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mode-control label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(20, 32, 28, 0.14);
+  background: #fff;
+  color: #273733;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mode-control input {
+  accent-color: #1c5d63;
+}
+
 .primary-button {
   display: inline-flex;
   align-items: center;
@@ -153,7 +176,7 @@ input {
 
 .result-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-top: 20px;
 }
@@ -173,11 +196,12 @@ input {
 
 .metric strong {
   font-size: 20px;
+  overflow-wrap: anywhere;
 }
 
 .visual-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
   margin-top: 18px;
 }

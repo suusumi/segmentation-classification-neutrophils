@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
-from skimage.measure import regionprops
+from skimage.measure import label, regionprops
 
 from src.pipeline.result import MorphologicalFeatures
 from src.pipeline.segment_counting import SegmentCountResult, count_nucleus_segments
@@ -61,7 +61,7 @@ def extract_morphological_features(
 
     binary_mask = mask.astype(bool)
     segment_count = segment_count or count_nucleus_segments(binary_mask)
-    regions = regionprops(segment_count.labeled_mask)
+    regions = regionprops(label(binary_mask))
     if not regions:
         return empty_morphological_features()
 

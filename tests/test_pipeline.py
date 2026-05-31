@@ -30,7 +30,10 @@ def test_pipeline_writes_artifacts(tmp_path: Path) -> None:
     output_dir = tmp_path / "analysis"
     _create_synthetic_neutrophil(image_path)
 
-    result = NeutrophilAnalysisPipeline(segmenter_name="threshold").run(
+    result = NeutrophilAnalysisPipeline(
+        segmenter_name="threshold",
+        lobe_counter_name="watershed",
+    ).run(
         analysis_id="test-analysis",
         image_path=image_path,
         output_dir=output_dir,
@@ -42,11 +45,39 @@ def test_pipeline_writes_artifacts(tmp_path: Path) -> None:
     assert result.features.segment_area_mean_px > 0
     assert result.classification.label in {"normal", "hypersegmentation", "unknown"}
     assert result.metadata.segmenter_name == "threshold"
+    assert result.metadata.lobe_counter_name == "watershed"
     assert result.metadata.classifier_name == "rule_based_segment_count"
     assert (output_dir / "artifacts" / "nucleus_mask.png").is_file()
     assert (output_dir / "artifacts" / "overlay.png").is_file()
+    assert (output_dir / "artifacts" / "lobe_components.png").is_file()
+    assert (output_dir / "artifacts" / "lobe_overlay.png").is_file()
     assert (output_dir / "reports" / "result.json").is_file()
     assert (output_dir / "reports" / "report.md").is_file()
+
+
+def test_pipeline_can_use_provided_nucleus_mask(tmp_path: Path) -> None:
+    image_path = tmp_path / "input" / "cell.png"
+    mask_path = tmp_path / "input" / "mask.png"
+    output_dir = tmp_path / "analysis"
+    _create_synthetic_neutrophil(image_path)
+    mask = np.zeros((128, 128), dtype=np.uint8)
+    mask[48:82, 36:92] = 255
+    Image.fromarray(mask).save(mask_path)
+
+    result = NeutrophilAnalysisPipeline(
+        segmenter_name="threshold",
+        lobe_counter_name="watershed",
+    ).run_with_nucleus_mask(
+        analysis_id="test-lobe-debug",
+        image_path=image_path,
+        nucleus_mask_path=mask_path,
+        output_dir=output_dir,
+    )
+
+    assert result.metadata.segmenter_name == "provided_nucleus_mask"
+    assert result.metadata.lobe_counter_name == "watershed"
+    assert result.features.nucleus_area_px > 0
+    assert (output_dir / "artifacts" / "nucleus_mask.png").is_file()
 
 
 def test_segment_counting_splits_components() -> None:

@@ -110,3 +110,65 @@ def get_segmentation_val_transforms(image_size: int = 256) -> A.Compose:
             ToTensorV2(),
         ]
     )
+
+
+def get_lobe_count_train_transforms(image_size: int = 256) -> A.Compose:
+    """Build online transforms for nucleus lobe count training."""
+
+    return A.Compose(
+        [
+            A.Resize(height=image_size, width=image_size),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.RandomRotate90(p=0.5),
+            A.Affine(
+                scale=(0.90, 1.10),
+                translate_percent=(-0.05, 0.05),
+                rotate=(-20, 20),
+                border_mode=cv2.BORDER_REFLECT_101,
+                fill_mask=0,
+                p=0.7,
+            ),
+            A.RandomBrightnessContrast(
+                brightness_limit=0.15,
+                contrast_limit=0.15,
+                p=0.4,
+            ),
+            A.HueSaturationValue(
+                hue_shift_limit=5,
+                sat_shift_limit=10,
+                val_shift_limit=10,
+                p=0.3,
+            ),
+            A.GaussNoise(p=0.2),
+            A.GaussianBlur(blur_limit=(3, 3), p=0.15),
+            A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+            ToTensorV2(),
+        ],
+        additional_targets={"lobe_instance_mask": "mask"},
+    )
+
+
+def get_lobe_count_val_transforms(image_size: int = 256) -> A.Compose:
+    """Build validation transforms for nucleus lobe count baselines."""
+
+    return A.Compose(
+        [
+            A.Resize(height=image_size, width=image_size),
+            A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+            ToTensorV2(),
+        ],
+        additional_targets={"lobe_instance_mask": "mask"},
+    )
+
+
+def get_lobe_segmentation_train_transforms(image_size: int = 256) -> A.Compose:
+    """Build online transforms for lobe foreground/boundary segmentation."""
+
+    return get_lobe_count_train_transforms(image_size=image_size)
+
+
+def get_lobe_segmentation_val_transforms(image_size: int = 256) -> A.Compose:
+    """Build validation transforms for lobe foreground/boundary segmentation."""
+
+    return get_lobe_count_val_transforms(image_size=image_size)

@@ -18,6 +18,7 @@ function App() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [analysisMode, setAnalysisMode] = useState("pipeline");
 
   useEffect(() => {
     if (!file) {
@@ -46,7 +47,23 @@ function App() {
           label: "Overlay",
           src: artifactUrl(result.artifacts.overlay_image),
         },
-      ]
+        {
+          label: "Lobe foreground",
+          src: artifactUrl(result.artifacts.lobe_foreground_image),
+        },
+        {
+          label: "Lobe boundary",
+          src: artifactUrl(result.artifacts.lobe_boundary_image),
+        },
+        {
+          label: "Lobe components",
+          src: artifactUrl(result.artifacts.lobe_components_image),
+        },
+        {
+          label: "Lobe overlay",
+          src: artifactUrl(result.artifacts.lobe_overlay_image),
+        },
+      ].filter((artifact) => artifact.src)
     : [];
 
   async function runAnalysis(event) {
@@ -64,7 +81,8 @@ function App() {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${apiUrl}/analysis`, {
+      const endpoint = analysisMode === "lobe-debug" ? "/analysis/lobe-debug" : "/analysis";
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
         body: formData,
       });
@@ -104,6 +122,28 @@ function App() {
                 <figcaption>Selected image</figcaption>
               </figure>
             )}
+            <div className="mode-control" aria-label="Analysis mode">
+              <label>
+                <input
+                  type="radio"
+                  name="analysis-mode"
+                  value="pipeline"
+                  checked={analysisMode === "pipeline"}
+                  onChange={(event) => setAnalysisMode(event.target.value)}
+                />
+                <span>Full pipeline</span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="analysis-mode"
+                  value="lobe-debug"
+                  checked={analysisMode === "lobe-debug"}
+                  onChange={(event) => setAnalysisMode(event.target.value)}
+                />
+                <span>Lobe only</span>
+              </label>
+            </div>
             <button className="primary-button" type="submit" disabled={isLoading}>
               {isLoading ? <Loader2 className="spin" size={18} /> : <Upload size={18} />}
               <span>{isLoading ? "Analyzing" : "Run analysis"}</span>
@@ -136,6 +176,10 @@ function App() {
                 <div className="metric">
                   <span>Confidence</span>
                   <strong>{Math.round(result.classification.confidence * 100)}%</strong>
+                </div>
+                <div className="metric">
+                  <span>Lobe counter</span>
+                  <strong>{result.metadata.lobe_counter_name}</strong>
                 </div>
               </div>
 

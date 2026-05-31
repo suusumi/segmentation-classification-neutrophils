@@ -207,6 +207,71 @@ Optional auto-preannotations for CVAT review can be generated with:
 python scripts/export_lobe_preannotations.py
 ```
 
+Train the first segment-count baseline:
+
+```bash
+python scripts/train_lobe_count_baseline.py \
+  --epochs 60 \
+  --batch-size 8 \
+  --image-size 256 \
+  --weights-path models/lobe_count_baseline.pt
+```
+
+This baseline uses online augmentations only. Its input is:
+
+```text
+RGB image + binary nucleus mask -> segment count class
+```
+
+Evaluate the saved model:
+
+```bash
+python scripts/evaluate_lobe_count_baseline.py \
+  --split test \
+  --weights-path models/lobe_count_baseline.pt \
+  --output-dir outputs/lobe_count_eval/test
+```
+
+The evaluator reports exact segment count accuracy, +/-1 accuracy, a count
+confusion matrix, and binary normal-vs-hypersegmentation accuracy for
+`segment_count >= 5`.
+
+For a spatial baseline that learns to separate lobes instead of guessing the
+count directly, train the foreground/boundary U-Net:
+
+```bash
+python scripts/generate_lobe_predicted_nucleus_masks.py \
+  --weights-path models/unet_nucleus.pt \
+  --output-dir data/processed/nucleus_lobes/predicted_nucleus_masks
+
+python scripts/train_lobe_boundary_unet.py \
+  --epochs 80 \
+  --batch-size 4 \
+  --image-size 384 \
+  --train-nucleus-mask-source mixed \
+  --val-nucleus-mask-source predicted \
+  --predicted-mask-dir data/processed/nucleus_lobes/predicted_nucleus_masks \
+  --init-weights-path models/lobe_boundary_unet.pt \
+  --weights-path models/lobe_boundary_unet_mixed.pt
+```
+
+The lobe U-Net input is `image + nucleus_mask`. The mixed-mask training mode
+randomly uses either the curated CVAT nucleus mask or the first-stage U-Net
+prediction, then applies online mask morphology noise. This better matches the
+full frontend pipeline than training only on clean CVAT masks.
+
+Evaluate it and save foreground, boundary, and split-component masks:
+
+```bash
+python scripts/evaluate_lobe_boundary_unet.py \
+  --split test \
+  --nucleus-mask-source predicted \
+  --predicted-mask-dir data/processed/nucleus_lobes/predicted_nucleus_masks \
+  --weights-path models/lobe_boundary_unet_mixed.pt \
+  --min-segment-area-px 64 \
+  --output-dir outputs/lobe_boundary_eval/test
+```
+
 ## Database Choice
 
 Use SQLite for the first stage. It is built into Python, cross-platform, requires no server, and is enough for local development, demos, and single-machine deployments.
