@@ -99,6 +99,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing curated image and mask files.",
     )
+    parser.add_argument(
+        "--include-empty",
+        action="store_true",
+        help="Include images without nucleus_lobe annotations as an error instead of skipping them.",
+    )
     return parser.parse_args()
 
 
@@ -313,6 +318,7 @@ def convert_cvat_lobes_export(
     test_fraction: float = 0.1,
     seed: int = 42,
     overwrite: bool = False,
+    skip_empty: bool = True,
 ) -> list[CuratedLobeRow]:
     """Convert a CVAT COCO instance export into curated lobe masks."""
 
@@ -333,7 +339,19 @@ def convert_cvat_lobes_export(
         if image_id in annotations_by_image:
             annotations_by_image[image_id].append(annotation)
 
-    image_keys = [Path(str(image["file_name"])).stem for image in images.values()]
+    annotated_images = {
+        image_id: image
+        for image_id, image in images.items()
+        if annotations_by_image[image_id]
+    }
+    if not annotated_images:
+        raise ValueError(f"No annotations with label '{label}' were found in: {annotation_json}")
+    if not skip_empty:
+        empty_count = len(images) - len(annotated_images)
+        if empty_count:
+            raise ValueError(f"COCO export contains {empty_count} images without {label} annotations.")
+
+    image_keys = [Path(str(image["file_name"])).stem for image in annotated_images.values()]
     split_by_id = assign_splits(
         image_ids=image_keys,
         val_fraction=val_fraction,
@@ -342,7 +360,10 @@ def convert_cvat_lobes_export(
     )
 
     rows: list[CuratedLobeRow] = []
-    for coco_image_id, image in sorted(images.items(), key=lambda item: str(item[1]["file_name"])):
+    for coco_image_id, image in sorted(
+        annotated_images.items(),
+        key=lambda item: str(item[1]["file_name"]),
+    ):
         file_name = str(image["file_name"])
         image_key = Path(file_name).stem
         split = split_by_id[image_key]
@@ -421,6 +442,7 @@ def main() -> None:
         test_fraction=args.test_fraction,
         seed=args.seed,
         overwrite=args.overwrite,
+        skip_empty=not args.include_empty,
     )
     split_counts = {
         split: sum(row.split == split for row in rows)
