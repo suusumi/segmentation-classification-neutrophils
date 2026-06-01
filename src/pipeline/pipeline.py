@@ -39,6 +39,15 @@ from src.services.errors import PipelineError
 from src.utils.logger import get_logger
 
 
+def _mask_summary(mask: np.ndarray) -> tuple[int, float]:
+    """Return foreground pixel count and fraction for compact logging."""
+
+    foreground_px = int(mask.astype(bool).sum())
+    total_px = int(mask.size)
+    foreground_fraction = float(foreground_px / total_px) if total_px else 0.0
+    return foreground_px, foreground_fraction
+
+
 def _load_nucleus_mask(mask_path: Path, height: int, width: int) -> np.ndarray:
     """Load a binary nucleus mask and resize with nearest-neighbor if needed."""
 
@@ -163,22 +172,90 @@ class NeutrophilAnalysisPipeline:
 
         log_path = logs_dir / "analysis.log"
         logger = get_logger(f"analysis.{analysis_id}", log_file=log_path)
-        logger.info("Starting analysis %s for %s", analysis_id, image_path)
+        logger.info(
+            "Starting analysis %s input=%s output_dir=%s",
+            analysis_id,
+            image_path,
+            analysis_dir,
+        )
+        logger.info(
+            "Runtime configuration segmenter=%s lobe_counter=%s",
+            self.segmenter_name,
+            self.lobe_counter_name,
+        )
 
         preprocessed = preprocess_image(image_path)
+        logger.info(
+            "Preprocessed image width=%s height=%s normalized_dtype=%s",
+            preprocessed.width,
+            preprocessed.height,
+            preprocessed.normalized_rgb.dtype,
+        )
         if nucleus_mask_path is None:
             segmenter = self._build_segmenter()
+            logger.info("Selected nucleus segmenter name=%s", segmenter.name)
             raw_mask = segmenter.segment(preprocessed.normalized_rgb)
             segmenter_name = segmenter.name
         else:
+            logger.info("Using provided nucleus mask path=%s", nucleus_mask_path)
             raw_mask = _load_nucleus_mask(nucleus_mask_path, preprocessed.height, preprocessed.width)
             segmenter_name = segmenter_label or "provided_nucleus_mask"
+        raw_foreground_px, raw_foreground_fraction = _mask_summary(raw_mask)
+        logger.info(
+            "Raw nucleus mask foreground_px=%s foreground_fraction=%.4f",
+            raw_foreground_px,
+            raw_foreground_fraction,
+        )
         mask = postprocess_mask(raw_mask)
+        mask_foreground_px, mask_foreground_fraction = _mask_summary(mask)
+        logger.info(
+            "Postprocessed nucleus mask foreground_px=%s foreground_fraction=%.4f removed_px=%s",
+            mask_foreground_px,
+            mask_foreground_fraction,
+            raw_foreground_px - mask_foreground_px,
+        )
         lobe_counter = self._build_lobe_counter()
+        logger.info("Selected lobe counter name=%s", lobe_counter.name)
         lobe_result = lobe_counter.count(preprocessed.normalized_rgb, mask)
         segment_count = lobe_result.segment_count
+        logger.info(
+            "Lobe count result segments=%s area_min_px=%s area_mean_px=%.2f area_max_px=%s",
+            segment_count.segment_count,
+            segment_count.segment_area_min_px,
+            segment_count.segment_area_mean_px,
+            segment_count.segment_area_max_px,
+        )
+        if lobe_result.foreground_mask is not None:
+            foreground_px, foreground_fraction = _mask_summary(lobe_result.foreground_mask)
+            logger.info(
+                "Lobe foreground mask foreground_px=%s foreground_fraction=%.4f",
+                foreground_px,
+                foreground_fraction,
+            )
+        if lobe_result.boundary_mask is not None:
+            boundary_px, boundary_fraction = _mask_summary(lobe_result.boundary_mask)
+            logger.info(
+                "Lobe boundary mask foreground_px=%s foreground_fraction=%.4f",
+                boundary_px,
+                boundary_fraction,
+            )
         features = extract_morphological_features(mask, segment_count=segment_count)
+        logger.info(
+            "Extracted features nucleus_area_px=%s circularity=%.3f solidity=%.3f "
+            "aspect_ratio=%.3f mask_fraction=%.4f",
+            features.nucleus_area_px,
+            features.nucleus_circularity,
+            features.nucleus_solidity,
+            features.nucleus_aspect_ratio,
+            features.mask_foreground_fraction,
+        )
         classification = classify_neutrophil(features)
+        logger.info(
+            "Classification label=%s confidence=%.3f reason=%s",
+            classification.label,
+            classification.confidence,
+            classification.reason,
+        )
 
         mask_path = save_mask(mask, artifacts_dir / "nucleus_mask.png")
         overlay_path = save_overlay(preprocessed.rgb, mask, artifacts_dir / "overlay.png")
@@ -275,6 +352,14 @@ class NeutrophilAnalysisPipeline:
         )
         save_report_json(result, report_json_path)
         save_report_markdown(result, report_markdown_path)
+        logger.info(
+            "Artifacts saved mask=%s overlay=%s lobe_components=%s lobe_overlay=%s report_json=%s",
+            mask_path,
+            overlay_path,
+            lobe_components_path,
+            lobe_overlay_path,
+            report_json_path,
+        )
 
         logger.info(
             "Analysis %s completed with label=%s segments=%s",

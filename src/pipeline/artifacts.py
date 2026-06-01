@@ -12,6 +12,69 @@ from src.pipeline.result import AnalysisResult
 from src.utils.io import write_json
 
 
+def _format_report_value(value: object) -> str:
+    """Format report values for Markdown tables."""
+
+    if value is None:
+        return "не сформирован"
+    if isinstance(value, float):
+        return f"{value:.3f}"
+    return str(value)
+
+
+def _markdown_table(rows: list[tuple[str, object]]) -> list[str]:
+    """Build a two-column Markdown table."""
+
+    table = [
+        "| Параметр | Значение |",
+        "| --- | --- |",
+    ]
+    table.extend(f"| {name} | {_format_report_value(value)} |" for name, value in rows)
+    return table
+
+
+def _classification_summary(result: AnalysisResult) -> str:
+    """Return a concise Russian explanation for the classification result."""
+
+    segments = result.features.nucleus_segments
+    segment_word = _russian_segment_word(segments)
+    if result.classification.label == "unknown":
+        return "Ядро не было надежно обнаружено, поэтому класс не определен."
+    if result.classification.label == "hypersegmentation":
+        return f"Обнаружено {segments} {segment_word} ядра; это соответствует гиперсегментации."
+    return f"Обнаружено {segments} {segment_word} ядра; это ниже порога гиперсегментации."
+
+
+def _russian_segment_word(count: int) -> str:
+    """Return the correct Russian plural form for a segment count."""
+
+    if count % 10 == 1 and count % 100 != 11:
+        return "сегмент"
+    if count % 10 in {2, 3, 4} and count % 100 not in {12, 13, 14}:
+        return "сегмента"
+    return "сегментов"
+
+
+def _localized_status(status: str) -> str:
+    """Return a Russian label for a pipeline status."""
+
+    return {
+        "completed": "завершен",
+        "failed": "ошибка",
+        "running": "выполняется",
+    }.get(status, status)
+
+
+def _localized_classification(label: str) -> str:
+    """Return a Russian label for a classification result."""
+
+    return {
+        "normal": "норма",
+        "hypersegmentation": "гиперсегментация",
+        "unknown": "не определено",
+    }.get(label, label)
+
+
 def save_mask(mask: np.ndarray, path: Path) -> Path:
     """Save a binary mask as an 8-bit PNG."""
 
@@ -95,45 +158,99 @@ def save_report_markdown(result: AnalysisResult, path: Path) -> Path:
     """Persist a compact human-readable report."""
 
     path.parent.mkdir(parents=True, exist_ok=True)
+    postprocessing_labels = {
+        "segment_min_area_px": "Мин. площадь сегмента, px",
+        "segment_min_peak_distance_px": "Мин. расстояние между пиками, px",
+        "watershed_compactness": "Компактность watershed",
+        "lobe_foreground_threshold": "Порог маски долей",
+        "lobe_boundary_threshold": "Порог границ долей",
+        "lobe_min_segment_area_px": "Мин. площадь доли, px",
+        "yolo_lobe_confidence": "Порог уверенности YOLO",
+        "yolo_lobe_iou": "YOLO IoU",
+        "yolo_lobe_image_size": "YOLO размер изображения",
+        "yolo_lobe_min_mask_area_px": "YOLO мин. площадь маски, px",
+        "border_margin_px": "Отступ от края, px",
+        "cluster_distance_fraction": "Дистанция кластеров",
+        "cluster_min_area_ratio": "Мин. доля площади кластера",
+    }
+    feature_rows = [
+        ("Площадь ядра, px", result.features.nucleus_area_px),
+        ("Периметр ядра, px", result.features.nucleus_perimeter_px),
+        ("Округлость", result.features.nucleus_circularity),
+        ("Плотность / solidity", result.features.nucleus_solidity),
+        ("Эксцентриситет", result.features.nucleus_eccentricity),
+        ("Заполнение ограничивающего прямоугольника", result.features.nucleus_extent),
+        ("Ориентация, градусы", result.features.nucleus_orientation_degrees),
+        ("Большая ось, px", result.features.nucleus_major_axis_length_px),
+        ("Малая ось, px", result.features.nucleus_minor_axis_length_px),
+        ("Соотношение сторон", result.features.nucleus_aspect_ratio),
+        ("Выпуклая площадь, px", result.features.nucleus_convex_area_px),
+        ("Заполненная площадь, px", result.features.nucleus_filled_area_px),
+        ("Ширина ограничивающего прямоугольника, px", result.features.nucleus_bbox_width_px),
+        ("Высота ограничивающего прямоугольника, px", result.features.nucleus_bbox_height_px),
+        ("Сегменты ядра", result.features.nucleus_segments),
+        ("Средняя площадь сегмента, px", result.features.segment_area_mean_px),
+        ("Минимальная площадь сегмента, px", result.features.segment_area_min_px),
+        ("Максимальная площадь сегмента, px", result.features.segment_area_max_px),
+        ("Доля foreground", result.features.mask_foreground_fraction),
+    ]
+    pipeline_rows = [
+        ("Версия пайплайна", result.metadata.pipeline_version),
+        ("Сегментатор ядра", result.metadata.segmenter_name),
+        ("Счетчик долей", result.metadata.lobe_counter_name),
+        ("Классификатор", result.metadata.classifier_name),
+    ]
+    postprocessing_rows = [
+        (postprocessing_labels.get(str(key), str(key)), value)
+        for key, value in result.metadata.postprocessing.items()
+    ]
+    artifact_rows = [
+        ("Исходное изображение", result.artifacts.original_image),
+        ("Маска ядра", result.artifacts.mask_image),
+        ("Наложение маски", result.artifacts.overlay_image),
+        ("Маска долей", result.artifacts.lobe_foreground_image),
+        ("Границы долей", result.artifacts.lobe_boundary_image),
+        ("Компоненты долей", result.artifacts.lobe_components_image),
+        ("Наложение долей", result.artifacts.lobe_overlay_image),
+        ("JSON-отчет", result.artifacts.report_json),
+        ("Markdown-отчет", result.artifacts.report_markdown),
+        ("Лог анализа", result.artifacts.log_file),
+    ]
+
     content = "\n".join(
         [
-            f"# Analysis {result.analysis_id}",
+            f"# Отчет анализа {result.analysis_id}",
             "",
-            f"Status: {result.status}",
-            f"Input: {result.input_filename}",
-            f"Image size: {result.image_width_px}x{result.image_height_px}px",
-            f"Classification: {result.classification.label}",
-            f"Confidence: {result.classification.confidence:.2f}",
-            f"Reason: {result.classification.reason}",
+            "## Сводка",
             "",
-            "## Features",
-            f"- Nucleus area: {result.features.nucleus_area_px}px",
-            f"- Nucleus perimeter: {result.features.nucleus_perimeter_px:.2f}px",
-            f"- Nucleus circularity: {result.features.nucleus_circularity:.3f}",
-            f"- Nucleus solidity: {result.features.nucleus_solidity:.3f}",
-            f"- Nucleus eccentricity: {result.features.nucleus_eccentricity:.3f}",
-            f"- Nucleus extent: {result.features.nucleus_extent:.3f}",
-            f"- Nucleus aspect ratio: {result.features.nucleus_aspect_ratio:.3f}",
-            f"- Foreground fraction: {result.features.mask_foreground_fraction:.3f}",
-            f"- Nucleus segments: {result.features.nucleus_segments}",
-            f"- Segment area mean: {result.features.segment_area_mean_px:.2f}px",
+            *_markdown_table(
+                [
+                    ("Статус", _localized_status(result.status)),
+                    ("Входной файл", result.input_filename),
+                    ("Размер изображения", f"{result.image_width_px}x{result.image_height_px}px"),
+                    ("Класс", _localized_classification(result.classification.label)),
+                    ("Техническая оценка классификатора", result.classification.confidence),
+                    ("Обоснование", _classification_summary(result)),
+                ]
+            ),
             "",
-            "## Pipeline",
-            f"- Version: {result.metadata.pipeline_version}",
-            f"- Segmenter: {result.metadata.segmenter_name}",
-            f"- Lobe counter: {result.metadata.lobe_counter_name}",
-            f"- Classifier: {result.metadata.classifier_name}",
+            "## Детали анализа",
             "",
-            "## Artifacts",
-            f"- Original: {result.artifacts.original_image}",
-            f"- Mask: {result.artifacts.mask_image}",
-            f"- Overlay: {result.artifacts.overlay_image}",
-            f"- Lobe foreground: {result.artifacts.lobe_foreground_image}",
-            f"- Lobe boundary: {result.artifacts.lobe_boundary_image}",
-            f"- Lobe components: {result.artifacts.lobe_components_image}",
-            f"- Lobe overlay: {result.artifacts.lobe_overlay_image}",
-            f"- JSON: {result.artifacts.report_json}",
-            f"- Log: {result.artifacts.log_file}",
+            "### Морфология ядра",
+            "",
+            *_markdown_table(feature_rows),
+            "",
+            "### Конфигурация пайплайна",
+            "",
+            *_markdown_table(pipeline_rows),
+            "",
+            "### Параметры постобработки",
+            "",
+            *_markdown_table(postprocessing_rows),
+            "",
+            "### Артефакты",
+            "",
+            *_markdown_table(artifact_rows),
             "",
         ]
     )

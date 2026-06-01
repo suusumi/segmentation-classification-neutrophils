@@ -55,6 +55,68 @@ def test_pipeline_writes_artifacts(tmp_path: Path) -> None:
     assert (output_dir / "reports" / "report.md").is_file()
 
 
+def test_pipeline_writes_diagnostic_log_entries(tmp_path: Path) -> None:
+    image_path = tmp_path / "input" / "cell.png"
+    output_dir = tmp_path / "analysis"
+    _create_synthetic_neutrophil(image_path)
+
+    NeutrophilAnalysisPipeline(
+        segmenter_name="threshold",
+        lobe_counter_name="watershed",
+    ).run(
+        analysis_id="test-analysis-logs",
+        image_path=image_path,
+        output_dir=output_dir,
+    )
+
+    log_text = (output_dir / "logs" / "analysis.log").read_text(encoding="utf-8")
+
+    assert "Runtime configuration segmenter=threshold lobe_counter=watershed" in log_text
+    assert "Preprocessed image width=128 height=128" in log_text
+    assert "Selected nucleus segmenter name=threshold" in log_text
+    assert "Postprocessed nucleus mask foreground_px=" in log_text
+    assert "Selected lobe counter name=watershed" in log_text
+    assert "Lobe count result segments=" in log_text
+    assert "Extracted features nucleus_area_px=" in log_text
+    assert "Classification label=" in log_text
+    assert "Artifacts saved mask=" in log_text
+
+
+def test_pipeline_writes_localized_markdown_report_with_details(tmp_path: Path) -> None:
+    image_path = tmp_path / "input" / "cell.png"
+    output_dir = tmp_path / "analysis"
+    _create_synthetic_neutrophil(image_path)
+
+    NeutrophilAnalysisPipeline(
+        segmenter_name="threshold",
+        lobe_counter_name="watershed",
+    ).run(
+        analysis_id="test-analysis-report",
+        image_path=image_path,
+        output_dir=output_dir,
+    )
+
+    report_text = (output_dir / "reports" / "report.md").read_text(encoding="utf-8")
+
+    assert "# Отчет анализа test-analysis-report" in report_text
+    assert "## Сводка" in report_text
+    assert "| Статус | завершен |" in report_text
+    assert "| Класс | норма |" in report_text
+    assert "## Детали анализа" in report_text
+    assert "### Морфология ядра" in report_text
+    assert "| Площадь ядра, px |" in report_text
+    assert "| Округлость |" in report_text
+    assert "### Конфигурация пайплайна" in report_text
+    assert "| Сегментатор ядра | threshold |" in report_text
+    assert "| Счетчик долей | watershed |" in report_text
+    assert "### Параметры постобработки" in report_text
+    assert "| Мин. площадь сегмента, px |" in report_text
+    assert "### Артефакты" in report_text
+    assert "| Маска ядра |" in report_text
+    assert "## Features" not in report_text
+    assert "## Pipeline" not in report_text
+
+
 def test_pipeline_can_use_provided_nucleus_mask(tmp_path: Path) -> None:
     image_path = tmp_path / "input" / "cell.png"
     mask_path = tmp_path / "input" / "mask.png"
