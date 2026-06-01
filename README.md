@@ -36,7 +36,7 @@ data/
   interim/      temporary derived data
   processed/    split CSVs and SQLite metadata
 
-models/         model weights, not committed
+models/         committed MVP model weights for local and Docker inference
 outputs/        analysis artifacts, masks, overlays, reports, logs
 frontend/       React/Vite client
 ```
@@ -98,6 +98,7 @@ Endpoints:
 ```text
 GET  /health
 POST /analysis
+POST /analysis/yolo
 GET  /analysis/{analysis_id}
 GET  /analysis/{analysis_id}/logs
 GET  /analysis/{analysis_id}/report
@@ -278,20 +279,8 @@ python scripts/evaluate_lobe_boundary_unet.py \
 YOLO-seg is an experimental alternative for lobe counting. It predicts one
 instance mask per visible nucleus lobe, so the count is the number of predicted
 `nucleus_lobe` masks. This path does not require the first whole-nucleus U-Net
-as an input stage.
-
-Install the optional YOLO dependency:
-
-```bash
-pip install ".[yolo]"
-```
-
-On Windows PowerShell, if editable extras are awkward in the current
-environment:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install ultralytics
-```
+as an input stage. The runtime dependency is installed by default because the
+frontend exposes YOLO as an MVP analysis mode.
 
 Export the curated lobe dataset to Ultralytics YOLO segmentation format:
 
@@ -374,4 +363,19 @@ API:      http://localhost:8000
 Frontend: http://localhost:5173
 ```
 
-The compose file mounts `data`, `models`, and `outputs` so local datasets, weights, and analysis results survive container restarts.
+The Docker image is inference-only: it installs CPU PyTorch and the runtime
+dependencies needed to run the API, U-Net pipeline, and YOLO mode against
+already trained models. Training scripts and training-only dependencies are kept
+for local development, not for the Docker runtime image.
+
+The Docker image includes the committed MVP model weights from `models/`, so a
+fresh checkout can run the U-Net and YOLO analysis modes without a manual model
+download. The compose file still mounts `data`, `models`, and `outputs` so local
+datasets, weights, and analysis results survive container restarts and can
+override the bundled weights during experiments.
+
+Smoke-check the API container:
+
+```bash
+curl http://localhost:8000/health
+```

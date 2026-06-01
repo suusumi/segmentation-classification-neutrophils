@@ -1,0 +1,502 @@
+{
+  "epoch": 6,
+  "best_val_exact_accuracy": 1.0,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 4.58099994023641,
+      "val_loss": 4.6875018165225075,
+      "val_exact_accuracy": 0.047619047619047616,
+      "val_plus_minus_one_accuracy": 0.19047619047619047,
+      "val_binary_hypersegmentation_accuracy": 0.2857142857142857,
+      "val_confusion_matrix": [
+        [
+          0,
+          1,
+          2,
+          1,
+          2,
+          2,
+          1,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          0,
+          3,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        10,
+        15,
+        18
+      ],
+      "val_predicted_count_distribution": {
+        "3": 2,
+        "4": 4,
+        "5": 4,
+        "6": 2,
+        "7": 5,
+        "10": 2,
+        "15": 1,
+        "18": 1
+      }
+    },
+    {
+      "epoch": 2,
+      "train_loss": 4.214848855336507,
+      "val_loss": 4.236504781813848,
+      "val_exact_accuracy": 0.19047619047619047,
+      "val_plus_minus_one_accuracy": 0.5238095238095238,
+      "val_binary_hypersegmentation_accuracy": 0.6666666666666666,
+      "val_confusion_matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          2,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          2,
+          3,
+          2,
+          1,
+          0,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "val_predicted_count_distribution": {
+        "1": 4,
+        "2": 5,
+        "3": 3,
+        "4": 2,
+        "5": 1,
+        "6": 3,
+        "7": 2,
+        "8": 1
+      }
+    },
+    {
+      "epoch": 3,
+      "train_loss": 4.020476242701212,
+      "val_loss": 4.1695073672703336,
+      "val_exact_accuracy": 0.23809523809523808,
+      "val_plus_minus_one_accuracy": 0.5714285714285714,
+      "val_binary_hypersegmentation_accuracy": 0.7619047619047619,
+      "val_confusion_matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          1,
+          2,
+          0,
+          2,
+          2,
+          1
+        ],
+        [
+          3,
+          2,
+          4,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "val_predicted_count_distribution": {
+        "1": 5,
+        "2": 4,
+        "3": 6,
+        "4": 1,
+        "5": 2,
+        "6": 2,
+        "7": 1
+      }
+    },
+    {
+      "epoch": 4,
+      "train_loss": 3.828538796106974,
+      "val_loss": 3.8836533455621627,
+      "val_exact_accuracy": 0.23809523809523808,
+      "val_plus_minus_one_accuracy": 0.5714285714285714,
+      "val_binary_hypersegmentation_accuracy": 1.0,
+      "val_confusion_matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          5,
+          5,
+          0,
+          0,
+          0
+        ],
+        [
+          8,
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "val_predicted_count_distribution": {
+        "1": 14,
+        "2": 7
+      }
+    },
+    {
+      "epoch": 5,
+      "train_loss": 3.6551814524332684,
+      "val_loss": 3.6188254015786305,
+      "val_exact_accuracy": 0.5714285714285714,
+      "val_plus_minus_one_accuracy": 0.9523809523809523,
+      "val_binary_hypersegmentation_accuracy": 1.0,
+      "val_confusion_matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          4,
+          6,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          4,
+          6,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "val_predicted_count_distribution": {
+        "1": 4,
+        "2": 11,
+        "3": 6
+      }
+    },
+    {
+      "epoch": 6,
+      "train_loss": 3.49206111907959,
+      "val_loss": 3.4619960217248824,
+      "val_exact_accuracy": 1.0,
+      "val_plus_minus_one_accuracy": 1.0,
+      "val_binary_hypersegmentation_accuracy": 1.0,
+      "val_confusion_matrix": [
+        [
+          10,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          10,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "val_count_values": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "val_predicted_count_distribution": {
+        "2": 10,
+        "3": 10,
+        "4": 1
+      }
+    }
+  ],
+  "weights_path": "models/lobe_boundary_unet.pt",
+  "count_values": [
+    2,
+    3,
+    4,
+    5
+  ]
+}

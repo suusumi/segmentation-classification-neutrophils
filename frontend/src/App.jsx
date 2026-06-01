@@ -340,10 +340,7 @@ function App() {
           <Toolbar sx={{ gap: 2 }}>
             <BiotechOutlinedIcon color="primary" />
             <Box sx={{ flex: 1 }}>
-              <Typography fontWeight={900}>Neutrophil Analysis Console</Typography>
-              <Typography color="text.secondary" variant="caption">
-                U-Net nucleus segmentation · lobe counting · rule-based classification
-              </Typography>
+              <Typography fontWeight={900}>Анализ нейтрофилов</Typography>
             </Box>
             <Chip
               color={result?.status === "completed" ? "success" : "default"}
@@ -414,8 +411,8 @@ function App() {
                         size="small"
                         value={analysisMode}
                       >
-                        <ToggleButton value="pipeline">U-Net pipeline</ToggleButton>
-                        <ToggleButton value="yolo">YOLO lobes</ToggleButton>
+                        <ToggleButton value="pipeline">U-Net</ToggleButton>
+                        <ToggleButton value="yolo">YOLO</ToggleButton>
                       </ToggleButtonGroup>
                     </Box>
 
