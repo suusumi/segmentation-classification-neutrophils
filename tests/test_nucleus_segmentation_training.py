@@ -12,7 +12,7 @@ from PIL import Image
 from scripts.convert_cvat_nucleus_export import convert_cvat_export, load_cvat_binary_mask
 from src.datasets.nucleus_segmentation_dataset import NucleusSegmentationDataset
 from src.datasets.transforms import get_segmentation_val_transforms
-from src.models import UNet
+from src.models.unet import UNet
 from src.pipeline.segmentation import UNetNucleusSegmenter
 
 

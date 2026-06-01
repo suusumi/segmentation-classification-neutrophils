@@ -26,10 +26,10 @@ from src.core.paths import PATHS, to_project_relative_str
 from src.datasets.nucleus_lobe_count_dataset import load_lobe_count_values
 from src.datasets.nucleus_lobe_segmentation_dataset import NucleusLobeSegmentationDataset
 from src.datasets.transforms import get_lobe_segmentation_val_transforms
-from src.models import UNet
+from src.models.unet import UNet
 from src.pipeline.artifacts import save_mask
+from src.pipeline.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 from src.training.lobe_count_metrics import compute_lobe_count_metrics
-from src.training.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 
 DEFAULT_MANIFEST_PATH = PATHS.processed_data / "nucleus_lobes" / "curated" / "manifest.csv"
 DEFAULT_WEIGHTS_PATH = PATHS.models / "lobe_boundary_unet.pt"

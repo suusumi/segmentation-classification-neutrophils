@@ -12,10 +12,10 @@ import torch.nn.functional as torch_functional
 from PIL import Image
 from skimage.measure import regionprops
 
-from src.models import UNet
+from src.models.unet import UNet
+from src.pipeline.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 from src.pipeline.segment_counting import SegmentCountConfig, SegmentCountResult, count_nucleus_segments
 from src.services.errors import PipelineError
-from src.training.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 
 
 class LobeCounter(Protocol):

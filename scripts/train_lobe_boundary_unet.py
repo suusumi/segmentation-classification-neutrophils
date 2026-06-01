@@ -27,9 +27,9 @@ from src.datasets.transforms import (
     get_lobe_segmentation_train_transforms,
     get_lobe_segmentation_val_transforms,
 )
-from src.models import UNet
+from src.models.unet import UNet
+from src.pipeline.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 from src.training.lobe_count_metrics import compute_lobe_count_metrics
-from src.training.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 from src.utils.seed import set_seed
 
 DEFAULT_MANIFEST_PATH = PATHS.processed_data / "nucleus_lobes" / "curated" / "manifest.csv"

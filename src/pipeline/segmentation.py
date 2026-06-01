@@ -12,7 +12,7 @@ import torch.nn.functional as torch_functional
 from skimage.color import rgb2gray
 from skimage.filters import gaussian, threshold_otsu
 
-from src.models import UNet
+from src.models.unet import UNet
 from src.services.errors import PipelineError
 
 

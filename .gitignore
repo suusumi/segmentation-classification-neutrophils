@@ -49,6 +49,7 @@ outputs/**
 models/*.pt
 models/*.pth
 models/*.onnx
+models/*.metrics.json
 
 # Keep directory structure placeholders if you add them later
 !data/raw/.gitkeep

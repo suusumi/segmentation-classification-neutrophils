@@ -25,7 +25,7 @@ from src.datasets.transforms import (
     get_segmentation_train_transforms,
     get_segmentation_val_transforms,
 )
-from src.models import UNet
+from src.models.unet import UNet
 from src.utils.seed import set_seed
 
 DEFAULT_MANIFEST_PATH = (

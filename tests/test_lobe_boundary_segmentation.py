@@ -14,9 +14,9 @@ from src.datasets.nucleus_lobe_segmentation_dataset import (
     lobe_instance_mask_to_targets,
 )
 from src.datasets.transforms import get_lobe_segmentation_val_transforms
-from src.models import UNet
+from src.models.unet import UNet
 from src.pipeline.lobe_counting import UNetLobeBoundaryCounter
-from src.training.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
+from src.pipeline.lobe_segmentation_postprocessing import postprocess_lobe_segmentation
 
 
 def _write_rgb_image(path: Path) -> None:
