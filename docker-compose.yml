@@ -14,10 +14,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmjs.org/}
     ports:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
     depends_on:
       - api
-
