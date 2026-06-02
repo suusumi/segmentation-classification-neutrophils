@@ -1,4 +1,4 @@
-"""Prepare stratified CSV splits for the Acevedo blood cell dataset."""
+"""Подготавливает стратифицированные CSV-разбиения для набора клеток крови Acevedo."""
 
 from __future__ import annotations
 
@@ -13,14 +13,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.datasets.acevedo_dataset import to_binary_label
-
 
 IMAGE_EXTENSIONS = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Create stratified train/val/test CSV splits for the Acevedo dataset."
@@ -55,24 +53,38 @@ def parse_args() -> argparse.Namespace:
         default=42,
         help="Random seed used for stratified splitting.",
     )
+    parser.add_argument(
+        "--relative_to",
+        type=Path,
+        default=PROJECT_ROOT,
+        help="Base directory used to store portable relative image paths.",
+    )
     return parser.parse_args()
 
 
 def _is_image_file(path: Path) -> bool:
-    """Return ``True`` if the path is a supported image file."""
-
+    """Возвращает ``True``, если путь указывает на поддерживаемый файл изображения."""
     return path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
 
 
-def _scan_dataset(input_dir: Path) -> pd.DataFrame:
-    """Scan a folder-per-class dataset into a dataframe.
+def _portable_image_path(image_path: Path, relative_to: Path) -> str:
+    """Возвращает переносимый путь изображения в POSIX-стиле для вывода CSV."""
+    try:
+        return image_path.resolve().relative_to(relative_to.resolve()).as_posix()
+    except ValueError:
+        return image_path.resolve().as_posix()
+
+
+def _scan_dataset(input_dir: Path, relative_to: Path = PROJECT_ROOT) -> pd.DataFrame:
+    """Сканирует набор данных с отдельной папкой на каждый класс в датафрейм.
 
     Args:
-        input_dir: Directory containing one subdirectory per cell class.
+        input_dir: Каталог, содержащий по одному подкаталогу на каждый класс клеток.
 
     Returns:
-        Dataframe with columns ``image_path``, ``label``, and ``binary_label``.
+        Датафрейм со столбцами ``image_path``, ``label`` и ``binary_label``.
     """
+    from src.datasets.acevedo_dataset import to_binary_label
 
     if not input_dir.exists():
         raise FileNotFoundError(f"Input dataset directory does not exist: {input_dir}")
@@ -92,7 +104,7 @@ def _scan_dataset(input_dir: Path) -> pd.DataFrame:
         for image_path in image_paths:
             records.append(
                 {
-                    "image_path": str(image_path.resolve()),
+                    "image_path": _portable_image_path(image_path, relative_to),
                     "label": label,
                     "binary_label": to_binary_label(label),
                 }
@@ -105,8 +117,7 @@ def _scan_dataset(input_dir: Path) -> pd.DataFrame:
 
 
 def _validate_split_sizes(val_size: float, test_size: float) -> None:
-    """Validate requested split sizes."""
-
+    """Проверяет запрошенные размеры разбиений."""
     if not 0.0 < val_size < 1.0:
         raise ValueError(f"val_size must be between 0 and 1, got {val_size}.")
     if not 0.0 < test_size < 1.0:
@@ -123,12 +134,11 @@ def create_splits(
     test_size: float,
     seed: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Create stratified train/val/test dataframes.
+    """Создает стратифицированные датафреймы train/val/test.
 
-    Stratification is performed on the original multiclass label to preserve
-    the composition of non-neutrophil subtypes across splits.
+    Стратификация выполняется по исходной многоклассовой метке, чтобы сохранить
+    состав подтипов не-нейтрофилов в разных разбиениях.
     """
-
     _validate_split_sizes(val_size, test_size)
 
     try:
@@ -162,8 +172,7 @@ def save_splits(
     test_df: pd.DataFrame,
     output_dir: Path,
 ) -> None:
-    """Save split dataframes to CSV files."""
-
+    """Сохраняет датафреймы разбиений в CSV-файлы."""
     output_dir.mkdir(parents=True, exist_ok=True)
     train_df.to_csv(output_dir / "train.csv", index=False)
     val_df.to_csv(output_dir / "val.csv", index=False)
@@ -171,13 +180,13 @@ def save_splits(
 
 
 def main() -> None:
-    """CLI entrypoint for preparing Acevedo dataset splits."""
-
+    """Точка входа CLI для подготовки разбиений набора данных Acevedo."""
     args = parse_args()
     input_dir = args.input_dir.resolve()
     output_dir = args.output_dir.resolve()
+    relative_to = args.relative_to.resolve()
 
-    dataframe = _scan_dataset(input_dir)
+    dataframe = _scan_dataset(input_dir, relative_to=relative_to)
     train_df, val_df, test_df = create_splits(
         dataframe=dataframe,
         val_size=args.val_size,

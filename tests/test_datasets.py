@@ -1,5 +1,4 @@
-"""Tests for Acevedo dataset loading and label conversion."""
-
+"""Тесты загрузки набора данных Acevedo и преобразования меток."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -14,24 +13,21 @@ from src.datasets.transforms import get_val_transforms
 
 
 def _create_image(path: Path, color: tuple[int, int, int]) -> None:
-    """Create a small RGB test image."""
-
+    """Создает небольшое тестовое RGB-изображение."""
     path.parent.mkdir(parents=True, exist_ok=True)
     image = Image.new("RGB", (32, 32), color=color)
     image.save(path)
 
 
 def test_to_binary_label() -> None:
-    """Neutrophils must map to 1 and all other labels to 0."""
-
+    """Нейтрофилы должны отображаться в 1, а все остальные метки - в 0."""
     assert to_binary_label("neutrophil") == 1
     assert to_binary_label("Neutrophil") == 1
     assert to_binary_label("monocyte") == 0
 
 
 def test_folder_dataset_length_and_sample_loading(tmp_path: Path) -> None:
-    """Dataset should load samples from class folders and return tensors."""
-
+    """Набор данных должен загружать образцы из папок классов и возвращать тензоры."""
     _create_image(tmp_path / "neutrophil" / "n1.jpg", (255, 0, 0))
     _create_image(tmp_path / "lymphocyte" / "l1.jpg", (0, 255, 0))
     _create_image(tmp_path / "lymphocyte" / "l2.jpg", (0, 0, 255))
@@ -48,8 +44,7 @@ def test_folder_dataset_length_and_sample_loading(tmp_path: Path) -> None:
 
 
 def test_csv_dataset_loading_and_binary_labels(tmp_path: Path) -> None:
-    """Dataset should load CSV annotations and convert labels to binary."""
-
+    """Набор данных должен загружать CSV-аннотации и преобразовывать метки в бинарные."""
     image_a = tmp_path / "images" / "a.jpg"
     image_b = tmp_path / "images" / "b.jpg"
     _create_image(image_a, (125, 125, 125))
@@ -76,8 +71,7 @@ def test_csv_dataset_loading_and_binary_labels(tmp_path: Path) -> None:
 
 
 def test_csv_dataset_raises_readable_error_for_missing_files(tmp_path: Path) -> None:
-    """Dataset should raise a clear error when CSV references missing files."""
-
+    """Набор данных должен выбрасывать понятную ошибку, когда CSV ссылается на отсутствующие файлы."""
     csv_path = tmp_path / "missing.csv"
     pd.DataFrame(
         [

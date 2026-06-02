@@ -1,5 +1,4 @@
-"""Configuration helpers for YAML-based experiment settings."""
-
+"""Утилиты конфигурации для настроек экспериментов на базе YAML."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,20 +8,19 @@ import yaml
 
 
 def load_yaml_config(path: str | Path) -> dict[str, Any]:
-    """Load a YAML configuration file into a dictionary.
+    """Загружает файл конфигурации YAML в словарь.
 
     Args:
-        path: Path to a YAML configuration file.
+        path: Путь к файлу конфигурации YAML.
 
     Returns:
-        A dictionary containing the configuration values.
+        Словарь со значениями конфигурации.
 
     Raises:
-        FileNotFoundError: If the configuration file does not exist.
-        TypeError: If the YAML root is not a mapping.
-        yaml.YAMLError: If the file contains invalid YAML.
+        FileNotFoundError: Если файл конфигурации не существует.
+        TypeError: Если корень YAML не является отображением.
+        yaml.YAMLError: Если файл содержит некорректный YAML.
     """
-
     config_path = Path(path)
     with config_path.open("r", encoding="utf-8") as file:
         config: Any = yaml.safe_load(file) or {}

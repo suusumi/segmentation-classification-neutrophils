@@ -1,4 +1,4 @@
-"""Dataset definitions for single-cell blood image classification."""
+"""Определения наборов данных для классификации изображений отдельных клеток крови."""
 
 from __future__ import annotations
 
@@ -20,35 +20,31 @@ IMAGE_EXTENSIONS = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 @dataclass(frozen=True)
 class DatasetSample:
-    """Single dataset entry with its resolved image path and labels."""
-
+    """Одна запись набора данных с разрешенным путем изображения и метками."""
     image_path: Path
     label: str
     binary_label: int
 
 
 def to_binary_label(label: str) -> int:
-    """Convert a blood cell class name into a neutrophil-vs-rest label.
+    """Преобразует имя класса клетки крови в метку "нейтрофил против остальных".
 
     Args:
-        label: Original class name.
+        label: Исходное имя класса.
 
     Returns:
-        ``1`` for neutrophil and ``0`` for every other class.
+        ``1`` для нейтрофила и ``0`` для любого другого класса.
     """
-
     return int(label.strip().lower() == "neutrophil")
 
 
 def _is_image_file(path: Path) -> bool:
-    """Return ``True`` if the path matches a supported image extension."""
-
+    """Возвращает ``True``, если путь соответствует поддерживаемому расширению изображения"""
     return path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
 
 
 def _validate_missing_files(samples: Sequence[DatasetSample]) -> None:
-    """Raise a readable error if any referenced image files are missing."""
-
+    """Выбрасывает ошибку, если указанные файлы изображений отсутствуют"""
     missing_paths = [sample.image_path for sample in samples if not sample.image_path.is_file()]
     if not missing_paths:
         return
@@ -63,8 +59,7 @@ def _validate_missing_files(samples: Sequence[DatasetSample]) -> None:
 
 
 def _load_samples_from_directory(data_root: Path) -> list[DatasetSample]:
-    """Load dataset samples from a folder-per-class directory structure."""
-
+    """Загружает образцы набора данных из структуры каталогов с отдельной папкой на класс"""
     if not data_root.exists():
         raise FileNotFoundError(f"Dataset directory does not exist: {data_root}")
     if not data_root.is_dir():
@@ -102,8 +97,7 @@ def _load_samples_from_directory(data_root: Path) -> list[DatasetSample]:
 
 
 def _load_samples_from_csv(csv_file: Path, data_root: Path | None = None) -> list[DatasetSample]:
-    """Load dataset samples from a CSV file with ``image_path`` and ``label`` columns."""
-
+    """Загружает образцы набора данных из CSV-файла со столбцами ``image_path`` и ``label``."""
     if not csv_file.exists():
         raise FileNotFoundError(f"Dataset CSV file does not exist: {csv_file}")
     if not csv_file.is_file():
@@ -122,7 +116,11 @@ def _load_samples_from_csv(csv_file: Path, data_root: Path | None = None) -> lis
     samples: list[DatasetSample] = []
     for row in dataframe.itertuples(index=False):
         raw_path = Path(str(row.image_path))
-        image_path = raw_path.resolve() if raw_path.is_absolute() else (base_dir / raw_path).resolve()
+        image_path = (
+            raw_path.resolve()
+            if raw_path.is_absolute()
+            else (base_dir / raw_path).resolve()
+        )
         label = str(row.label)
         samples.append(
             DatasetSample(
@@ -140,8 +138,7 @@ def _load_samples_from_csv(csv_file: Path, data_root: Path | None = None) -> lis
 
 
 def _default_image_to_tensor(image: np.ndarray) -> Tensor:
-    """Convert an RGB numpy image into a float tensor with channels-first layout."""
-
+    """Преобразует RGB-изображение numpy в float-тензор с расположением каналов первыми."""
     if image.ndim != 3 or image.shape[2] != 3:
         raise ValueError(
             "Expected an RGB image array with shape (height, width, 3)."
@@ -152,37 +149,34 @@ def _default_image_to_tensor(image: np.ndarray) -> Tensor:
 
 
 class AcevedoDataset(Dataset[tuple[Tensor, int, str]]):
-    """PyTorch dataset for neutrophil-vs-non-neutrophil image classification.
+    """Набор данных PyTorch для классификации изображений на нейтрофилы и не-нейтрофилы.
+    два формата входа:
+    1. Структура с отдельной папкой на класс, например ``data_root/neutrophil/*.jpg``.
+    2. CSV-файл со столбцами ``image_path`` и ``label``.
 
-    The dataset supports two input layouts:
-    1. Folder-per-class structure such as ``data_root/neutrophil/*.jpg``.
-    2. CSV file with columns ``image_path`` and ``label``.
-
-    Labels are converted to a binary target where neutrophil is ``1`` and
-    every other class is ``0``.
+    Метки преобразуются в бинарную цель, где нейтрофил имеет значение ``1``,
+    а любой другой класс - ``0``.
     """
-
     def __init__(
         self,
         data_root: str | Path | None = None,
         csv_file: str | Path | None = None,
         transform: ImageTransform | None = None,
     ) -> None:
-        """Initialize the dataset.
+        """Инициализирует набор данных.
 
         Args:
-            data_root: Root directory for folder-per-class datasets, or the base
-                directory used to resolve relative paths from ``csv_file``.
-            csv_file: Optional CSV annotation file with columns
-                ``image_path`` and ``label``.
-            transform: Optional albumentations-style transform that accepts
-                ``image=...`` and returns a dictionary containing ``image``.
+            data_root: Корневой каталог для наборов данных с отдельной папкой на класс
+                или базовый каталог для разрешения относительных путей из ``csv_file``.
+            csv_file: Необязательный CSV-файл аннотаций со столбцами
+                ``image_path`` и ``label``.
+            transform: Необязательное преобразование в стиле albumentations, которое
+                принимает ``image=...`` и возвращает словарь с ключом ``image``.
 
         Raises:
-            ValueError: If neither ``data_root`` nor ``csv_file`` is provided.
-            FileNotFoundError: If required files are missing.
+            ValueError: Если не передан ни ``data_root``, ни ``csv_file``.
+            FileNotFoundError: Если отсутствуют обязательные файлы.
         """
-
         if data_root is None and csv_file is None:
             raise ValueError("Provide either 'data_root' or 'csv_file' to build the dataset.")
 
@@ -197,13 +191,11 @@ class AcevedoDataset(Dataset[tuple[Tensor, int, str]]):
             self.samples = _load_samples_from_directory(self.data_root)
 
     def __len__(self) -> int:
-        """Return the number of samples in the dataset."""
-
+        """Возвращает количество образцов в наборе данных."""
         return len(self.samples)
 
     def __getitem__(self, index: int) -> tuple[Tensor, int, str]:
-        """Return a transformed image tensor, binary label, and image path."""
-
+        """Возвращает преобразованный тензор изображения, бинарную метку и путь изображения."""
         sample = self.samples[index]
         with Image.open(sample.image_path) as image:
             rgb_image = np.array(image.convert("RGB"))

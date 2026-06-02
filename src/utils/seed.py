@@ -1,4 +1,4 @@
-"""Utilities for reproducible experiments."""
+"""Утилиты для воспроизводимых экспериментов."""
 
 from __future__ import annotations
 
@@ -10,15 +10,14 @@ import torch
 
 
 def set_seed(seed: int = 42, deterministic: bool = True) -> None:
-    """Set seeds for Python, NumPy, and PyTorch.
+    """Устанавливает seed для Python, NumPy и PyTorch.
 
     Args:
-        seed: Seed value used across random number generators.
-        deterministic: If ``True``, enables deterministic PyTorch behavior
-            where possible. This can reduce performance but improves
-            reproducibility for experiments.
+        seed: Значение seed, используемое во всех генераторах случайных чисел.
+        deterministic: Если ``True``, включает детерминированное поведение PyTorch
+            там, где это возможно. Это может снизить производительность, но улучшает
+            воспроизводимость экспериментов.
     """
-
     os.environ["PYTHONHASHSEED"] = str(seed)
 
     random.seed(seed)

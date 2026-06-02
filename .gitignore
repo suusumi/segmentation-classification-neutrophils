@@ -23,6 +23,8 @@ dist/
 *.egg-info/
 .eggs/
 pip-wheel-metadata/
+frontend/dist/
+frontend/node_modules/
 
 # IDE and OS files
 .idea/
@@ -42,7 +44,10 @@ Thumbs.db
 data/raw/**
 data/interim/**
 data/processed/**
+data/task_*
 outputs/**
+models/*.pth
+models/*.onnx
 
 # Keep directory structure placeholders if you add them later
 !data/raw/.gitkeep

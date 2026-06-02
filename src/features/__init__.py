@@ -1,1 +1,1 @@
-"""Feature extraction modules for neutrophil-focused analysis."""
+"""Модули извлечения признаков для анализа, сфокусированного на нейтрофилах."""

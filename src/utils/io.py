@@ -1,5 +1,4 @@
-"""File system and JSON helpers used across the project."""
-
+"""Утилиты файловой системы и JSON, используемые во всем проекте."""
 from __future__ import annotations
 
 import json
@@ -11,48 +10,45 @@ PathLike = str | Path
 
 
 def ensure_dir(path: PathLike) -> Path:
-    """Create a directory if it does not already exist.
+    """Создает каталог, если он еще не существует.
 
     Args:
-        path: Directory path to create.
+        path: Путь каталога, который нужно создать.
 
     Returns:
-        The resolved directory path as a ``Path`` object.
+        Разрешенный путь каталога как объект ``Path``.
     """
-
     directory = Path(path)
     directory.mkdir(parents=True, exist_ok=True)
     return directory
 
 
 def ensure_dirs(paths: list[PathLike]) -> list[Path]:
-    """Create multiple directories.
+    """Создает несколько каталогов.
 
     Args:
-        paths: Directory paths to create.
+        paths: Пути каталогов, которые нужно создать.
 
     Returns:
-        A list of created or existing directory paths.
+        Список путей созданных или уже существующих каталогов.
     """
-
     return [ensure_dir(path) for path in paths]
 
 
 def read_json(path: PathLike) -> dict[str, Any]:
-    """Read a JSON file into a dictionary.
+    """Читает JSON-файл в словарь.
 
     Args:
-        path: Path to a JSON file.
+        path: Путь к JSON-файлу.
 
     Returns:
-        Parsed JSON content.
+        Разобранное содержимое JSON.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
-        json.JSONDecodeError: If the file contains invalid JSON.
-        TypeError: If the JSON root is not an object.
+        FileNotFoundError: Если файл не существует.
+        json.JSONDecodeError: Если файл содержит некорректный JSON.
+        TypeError: Если корень JSON не является объектом.
     """
-
     json_path = Path(path)
     with json_path.open("r", encoding="utf-8") as file:
         data: Any = json.load(file)
@@ -64,14 +60,13 @@ def read_json(path: PathLike) -> dict[str, Any]:
 
 
 def write_json(path: PathLike, data: dict[str, Any], indent: int = 2) -> None:
-    """Write a dictionary to a JSON file.
+    """Записывает словарь в JSON-файл.
 
     Args:
-        path: Output path for the JSON file.
-        data: Dictionary to serialize.
-        indent: Number of spaces used for pretty printing.
+        path: Выходной путь для JSON-файла.
+        data: Словарь для сериализации.
+        indent: Количество пробелов для форматированного вывода.
     """
-
     json_path = Path(path)
     json_path.parent.mkdir(parents=True, exist_ok=True)
 
