@@ -1,4 +1,4 @@
-"""Datasets for nucleus lobe count baselines."""
+"""Наборы данных для базовых моделей подсчета долей ядра."""
 
 from __future__ import annotations
 
@@ -20,8 +20,7 @@ LobeTransform = Callable[..., dict[str, Any]]
 
 @dataclass(frozen=True)
 class NucleusLobeSample:
-    """One curated nucleus lobe sample."""
-
+    """Один курируемый образец долей ядра."""
     image_id: str
     source_image_path: Path
     image_path: Path
@@ -32,8 +31,7 @@ class NucleusLobeSample:
 
 
 def _resolve_path(path_value: str, base_dir: Path) -> Path:
-    """Resolve absolute, manifest-relative, or project-relative paths."""
-
+    """Разрешает абсолютные пути, пути относительно манифеста или пути относительно проекта."""
     path = Path(path_value)
     if path.is_absolute():
         return path.resolve()
@@ -48,8 +46,7 @@ def load_lobe_manifest_samples(
     manifest_path: str | Path,
     split: str | None = None,
 ) -> list[NucleusLobeSample]:
-    """Load curated lobe samples from a manifest CSV."""
-
+    """Загружает курируемые образцы долей из CSV-манифеста."""
     resolved_manifest_path = Path(manifest_path).resolve()
     if not resolved_manifest_path.is_file():
         raise FileNotFoundError(f"Manifest does not exist: {resolved_manifest_path}")
@@ -117,21 +114,18 @@ def load_lobe_manifest_samples(
 
 
 def load_lobe_count_values(manifest_path: str | Path) -> list[int]:
-    """Return sorted segment count values present in the full manifest."""
-
+    """Возвращает отсортированные значения количества сегментов, присутствующие в полном манифесте."""
     samples = load_lobe_manifest_samples(manifest_path=manifest_path, split=None)
     return sorted({sample.segment_count for sample in samples})
 
 
 def _image_to_tensor(image: np.ndarray) -> Tensor:
-    """Convert an RGB image array into a float tensor."""
-
+    """Преобразует массив RGB-изображения в float-тензор."""
     return torch.from_numpy(image).permute(2, 0, 1).float().div(255.0)
 
 
 def _mask_to_tensor(mask: np.ndarray | Tensor) -> Tensor:
-    """Convert a mask array or tensor into a 1xHxW float tensor."""
-
+    """Преобразует массив или тензор маски в float-тензор 1xHxW."""
     if isinstance(mask, np.ndarray):
         if mask.ndim == 3:
             mask = mask[:, :, 0]
@@ -146,8 +140,7 @@ def _mask_to_tensor(mask: np.ndarray | Tensor) -> Tensor:
 
 
 class NucleusLobeCountDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]):
-    """Dataset for count baselines using RGB image plus nucleus mask."""
-
+    """Набор данных для базовых моделей подсчета, использующий RGB-изображение и маску ядра."""
     def __init__(
         self,
         manifest_path: str | Path,
@@ -155,15 +148,14 @@ class NucleusLobeCountDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]):
         count_values: Sequence[int] | None = None,
         transform: LobeTransform | None = None,
     ) -> None:
-        """Initialize the dataset.
+        """Инициализирует набор данных.
 
         Args:
-            manifest_path: Curated lobe manifest CSV.
-            split: Optional split filter.
-            count_values: Stable ordered count labels, for example ``[2, 3, 4, 5]``.
-            transform: Optional albumentations transform accepting image and masks.
+            manifest_path: CSV-манифест курируемых долей.
+            split: Необязательный фильтр разбиения.
+            count_values: Стабильно упорядоченные метки количества, например ``[2, 3, 4, 5]``.
+            transform: Необязательное преобразование albumentations, принимающее изображение и маски.
         """
-
         self.manifest_path = Path(manifest_path).resolve()
         self.samples = load_lobe_manifest_samples(self.manifest_path, split=split)
         self.count_values = list(count_values or sorted({s.segment_count for s in self.samples}))
@@ -177,13 +169,11 @@ class NucleusLobeCountDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]):
             raise ValueError(f"Dataset contains counts not present in count_values: {unknown_counts}")
 
     def __len__(self) -> int:
-        """Return number of samples."""
-
+        """Возвращает количество образцов."""
         return len(self.samples)
 
     def __getitem__(self, index: int) -> tuple[Tensor, Tensor, Tensor, str]:
-        """Return 4-channel input tensor, class target, raw count, and image id."""
-
+        """Возвращает 4-канальный входной тензор, целевой класс, исходное количество и id изображения."""
         sample = self.samples[index]
         with Image.open(sample.image_path) as image:
             rgb_image = np.asarray(image.convert("RGB"))

@@ -1,4 +1,4 @@
-"""Train U-Net to predict nucleus lobe foreground and separating boundaries."""
+"""Обучает U-Net предсказывать передний план долей ядра и разделяющие границы."""
 
 # ruff: noqa: E402
 
@@ -38,7 +38,7 @@ DEFAULT_PREDICTED_MASK_DIR = PATHS.processed_data / "nucleus_lobes" / "predicted
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Train lobe foreground/boundary U-Net.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -89,8 +89,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_name: str) -> torch.device:
-    """Resolve a CLI device name into a torch device."""
-
+    """Преобразует имя устройства из CLI в устройство torch."""
     if device_name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_name)
@@ -101,8 +100,7 @@ def soft_dice_loss(
     targets: torch.Tensor,
     eps: float = 1e-7,
 ) -> torch.Tensor:
-    """Compute differentiable Dice loss per channel."""
-
+    """Вычисляет дифференцируемую Dice-loss по каждому каналу."""
     probabilities = torch.sigmoid(logits)
     intersection = (probabilities * targets).sum(dim=(0, 2, 3))
     denominator = probabilities.sum(dim=(0, 2, 3)) + targets.sum(dim=(0, 2, 3))
@@ -115,8 +113,7 @@ def lobe_segmentation_loss(
     targets: torch.Tensor,
     boundary_loss_weight: float,
 ) -> torch.Tensor:
-    """Combine BCE and Dice losses for foreground and boundary channels."""
-
+    """Объединяет BCE и Dice-loss для каналов переднего плана и границ."""
     bce = nn.functional.binary_cross_entropy_with_logits(logits, targets, reduction="none")
     bce_by_channel = bce.mean(dim=(0, 2, 3))
     dice_by_channel = soft_dice_loss(logits, targets)
@@ -131,8 +128,7 @@ def _counts_from_logits(
     boundary_threshold: float,
     min_segment_area_px: int,
 ) -> list[int]:
-    """Postprocess batch logits into predicted lobe counts."""
-
+    """Постобрабатывает батч логитов в предсказанные количества долей."""
     probabilities = torch.sigmoid(logits).detach().cpu().numpy()
     support_array = support_masks.detach().cpu().numpy() > 0.5
     predictions: list[int] = []
@@ -156,8 +152,7 @@ def train_one_epoch(
     device: torch.device,
     boundary_loss_weight: float,
 ) -> float:
-    """Train for one epoch."""
-
+    """Обучает одну эпоху."""
     model.train()
     total_loss = 0.0
     sample_count = 0
@@ -187,8 +182,7 @@ def evaluate(
     count_values: list[int],
     args: argparse.Namespace,
 ) -> dict[str, Any]:
-    """Evaluate validation loss and count metrics."""
-
+    """Оценивает валидационную ошибку и метрики подсчета."""
     model.eval()
     total_loss = 0.0
     sample_count = 0
@@ -243,8 +237,7 @@ def _checkpoint_payload(
     count_values: list[int],
     history: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Build a checkpoint payload."""
-
+    """Создает полезную нагрузку чекпоинта."""
     return {
         "model_state_dict": model.state_dict(),
         "epoch": epoch,
@@ -288,8 +281,7 @@ def save_checkpoint(
     count_values: list[int],
     history: list[dict[str, Any]],
 ) -> None:
-    """Save model weights and sidecar metrics."""
-
+    """Сохраняет веса модели и сопутствующие метрики."""
     args.weights_path.parent.mkdir(parents=True, exist_ok=True)
     payload = _checkpoint_payload(
         model=model,
@@ -317,7 +309,7 @@ def save_checkpoint(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     set_seed(args.seed, deterministic=True)

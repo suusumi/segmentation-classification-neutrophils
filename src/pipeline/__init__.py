@@ -1,4 +1,4 @@
-"""Neutrophil analysis pipeline."""
+"""Пайплайн анализа нейтрофилов."""
 
 from .pipeline import NeutrophilAnalysisPipeline
 

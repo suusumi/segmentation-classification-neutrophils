@@ -1,5 +1,4 @@
-"""Prepare a small CVAT annotation batch from generated pseudo-label masks."""
-
+"""Подготавливает небольшой пакет разметки CVAT из сгенерированных масок псевдометок."""
 from __future__ import annotations
 
 import argparse
@@ -32,8 +31,7 @@ LABELMAP = "\n".join(
 
 @dataclass(frozen=True)
 class CvatBatchRow:
-    """One manifest row selected for a CVAT batch."""
-
+    """Одна строка манифеста, выбранная для пакета CVAT."""
     image_id: str
     image_path: Path
     pseudo_mask_path: Path
@@ -42,8 +40,7 @@ class CvatBatchRow:
 
     @classmethod
     def from_manifest_row(cls, row: dict[str, str]) -> "CvatBatchRow":
-        """Create a row from the pseudo-label manifest."""
-
+        """Создает строку из манифеста псевдометок."""
         overlay_value = row.get("overlay_path", "")
         return cls(
             image_id=row["image_id"],
@@ -55,7 +52,7 @@ class CvatBatchRow:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Prepare image and preannotation ZIP files for a CVAT task."
@@ -98,8 +95,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _project_path(path_value: str) -> Path:
-    """Resolve a project-relative path value."""
-
+    """Разрешает значение пути относительно проекта."""
     path = Path(path_value)
     if path.is_absolute():
         return path
@@ -107,8 +103,7 @@ def _project_path(path_value: str) -> Path:
 
 
 def load_manifest_rows(manifest_path: Path, split: str = "train") -> list[CvatBatchRow]:
-    """Load pseudo-label manifest rows for a split."""
-
+    """Загружает строки манифеста псевдометок для разбиения."""
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Manifest does not exist: {manifest_path}")
 
@@ -133,8 +128,7 @@ def load_manifest_rows(manifest_path: Path, split: str = "train") -> list[CvatBa
 
 
 def sample_rows(rows: list[CvatBatchRow], limit: int, seed: int) -> list[CvatBatchRow]:
-    """Return a deterministic sampled subset."""
-
+    """Возвращает детерминированно выбранное подмножество."""
     if limit <= 0:
         raise ValueError(f"limit must be positive, got {limit}")
     rng = random.Random(seed)
@@ -144,8 +138,7 @@ def sample_rows(rows: list[CvatBatchRow], limit: int, seed: int) -> list[CvatBat
 
 
 def _write_batch_manifest(rows: list[CvatBatchRow], path: Path) -> None:
-    """Write a batch-level manifest for traceability."""
-
+    """Записывает манифест уровня пакета для трассируемости."""
     fieldnames = [
         "image_id",
         "image_path",
@@ -171,22 +164,19 @@ def _write_batch_manifest(rows: list[CvatBatchRow], path: Path) -> None:
 
 
 def _write_labels(path: Path) -> None:
-    """Write CVAT labels JSON."""
-
+    """Записывает JSON меток CVAT."""
     path.write_text(json.dumps(LABELS, indent=2), encoding="utf-8")
 
 
 def _write_images_zip(rows: list[CvatBatchRow], path: Path) -> None:
-    """Write source images into a CVAT-uploadable ZIP archive."""
-
+    """Записывает исходные изображения в ZIP-архив, пригодный для загрузки в CVAT."""
     with zipfile.ZipFile(path, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         for row in rows:
             archive.write(row.image_path, arcname=row.image_path.name)
 
 
 def _write_mask_png_for_cvat(source_mask_path: Path, archive: zipfile.ZipFile, arcname: str) -> None:
-    """Convert a 0/255 pseudo-mask to a 0/1 CVAT grayscale PNG inside a ZIP."""
-
+    """Преобразует псевдомаску 0/255 в оттеночный PNG CVAT 0/1 внутри ZIP."""
     mask = np.asarray(Image.open(source_mask_path).convert("L"))
     cvat_mask = (mask > 0).astype(np.uint8)
     with archive.open(arcname, mode="w") as file:
@@ -194,8 +184,7 @@ def _write_mask_png_for_cvat(source_mask_path: Path, archive: zipfile.ZipFile, a
 
 
 def _write_preannotations_zip(rows: list[CvatBatchRow], path: Path) -> None:
-    """Write pseudo masks in CVAT Segmentation Mask import format."""
-
+    """Записывает псевдомаски в формате импорта CVAT Segmentation Mask."""
     with zipfile.ZipFile(path, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr("labelmap.txt", LABELMAP)
         archive.writestr(
@@ -221,8 +210,7 @@ def prepare_cvat_batch(
     output_dir: Path,
     batch_name: str,
 ) -> Path:
-    """Prepare all CVAT batch artifacts and return the batch directory."""
-
+    """Подготавливает все артефакты пакета CVAT и возвращает каталог пакета."""
     batch_dir = output_dir / batch_name
     batch_dir.mkdir(parents=True, exist_ok=True)
     _write_batch_manifest(rows, batch_dir / "manifest.csv")
@@ -233,7 +221,7 @@ def prepare_cvat_batch(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     rows = load_manifest_rows(args.manifest, split=args.split)

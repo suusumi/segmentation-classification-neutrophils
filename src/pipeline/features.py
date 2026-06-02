@@ -1,4 +1,4 @@
-"""Morphological feature extraction from nucleus masks."""
+"""Извлечение морфологических признаков из масок ядра."""
 
 from __future__ import annotations
 
@@ -12,24 +12,21 @@ from src.pipeline.segment_counting import SegmentCountResult, count_nucleus_segm
 
 
 def _safe_ratio(numerator: float, denominator: float) -> float:
-    """Return a zero-safe ratio."""
-
+    """Возвращает отношение с защитой от деления на ноль."""
     if denominator == 0.0:
         return 0.0
     return float(numerator / denominator)
 
 
 def _circularity(area: float, perimeter: float) -> float:
-    """Compute 4*pi*area/perimeter^2."""
-
+    """Вычисляет 4*pi*area/perimeter^2."""
     if perimeter == 0.0:
         return 0.0
     return float((4.0 * math.pi * area) / (perimeter * perimeter))
 
 
 def empty_morphological_features() -> MorphologicalFeatures:
-    """Return a zero-valued feature vector."""
-
+    """Возвращает вектор признаков с нулевыми значениями."""
     return MorphologicalFeatures(
         nucleus_area_px=0,
         nucleus_perimeter_px=0.0,
@@ -57,8 +54,7 @@ def extract_morphological_features(
     mask: np.ndarray,
     segment_count: SegmentCountResult | None = None,
 ) -> MorphologicalFeatures:
-    """Extract region properties from a nucleus mask."""
-
+    """Извлекает свойства области из маски ядра."""
     binary_mask = mask.astype(bool)
     segment_count = segment_count or count_nucleus_segments(binary_mask)
     regions = regionprops(label(binary_mask))

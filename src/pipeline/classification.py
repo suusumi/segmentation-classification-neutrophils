@@ -1,4 +1,4 @@
-"""Rule-based classification for nucleus segmentation count and shape quality."""
+"""Правиловая классификация по числу сегментов ядра и качеству формы."""
 
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from src.pipeline.result import ClassificationResult, MorphologicalFeatures
 
 @dataclass(frozen=True)
 class RuleBasedClassifierConfig:
-    """Thresholds for interpretable neutrophil classification."""
-
+    """Пороговые значения для интерпретируемой классификации нейтрофилов."""
     hypersegmentation_min_segments: int = 5
     normal_max_segments: int = 4
     low_mask_fraction: float = 0.005
@@ -21,8 +20,7 @@ def _quality_penalty(
     features: MorphologicalFeatures,
     config: RuleBasedClassifierConfig,
 ) -> tuple[float, list[str]]:
-    """Return confidence penalty and warning reasons for suspicious masks."""
-
+    """Возвращает штраф уверенности и причины предупреждений для подозрительных масок."""
     warnings: list[str] = []
     penalty = 0.0
     if features.mask_foreground_fraction < config.low_mask_fraction:
@@ -41,8 +39,7 @@ def classify_neutrophil(
     features: MorphologicalFeatures,
     config: RuleBasedClassifierConfig | None = None,
 ) -> ClassificationResult:
-    """Classify normal vs hypersegmented neutrophil from nucleus segment count."""
-
+    """Классифицирует нормальный и гиперсегментированный нейтрофил по числу сегментов ядра."""
     config = config or RuleBasedClassifierConfig()
     if features.nucleus_segments == 0:
         return ClassificationResult(

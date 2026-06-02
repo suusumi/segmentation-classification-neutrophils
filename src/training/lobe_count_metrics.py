@@ -1,5 +1,4 @@
-"""Metrics for nucleus lobe count baselines."""
-
+"""Метрики для базовых моделей подсчета долей ядра."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,8 +9,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class LobeCountMetrics:
-    """Summary metrics for lobe count prediction."""
-
+    """Сводные метрики предсказания числа долей."""
     sample_count: int
     exact_accuracy: float
     plus_minus_one_accuracy: float
@@ -25,8 +23,7 @@ def confusion_matrix_for_counts(
     predictions: Sequence[int],
     count_values: Sequence[int],
 ) -> list[list[int]]:
-    """Build a confusion matrix with rows=true counts and columns=predicted counts."""
-
+    """Строит матрицу ошибок, где строки - истинные количества, а столбцы - предсказанные."""
     index_by_count = {count: index for index, count in enumerate(count_values)}
     matrix = np.zeros((len(count_values), len(count_values)), dtype=np.int64)
     for target, prediction in zip(targets, predictions, strict=True):
@@ -40,8 +37,7 @@ def compute_lobe_count_metrics(
     count_values: Sequence[int],
     hypersegmentation_threshold: int = 5,
 ) -> LobeCountMetrics:
-    """Compute count and binary hypersegmentation metrics."""
-
+    """Вычисляет метрики подсчета и бинарной гиперсегментации."""
     if len(targets) != len(predictions):
         raise ValueError("targets and predictions must have the same length.")
     if not targets:

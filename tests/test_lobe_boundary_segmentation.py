@@ -1,4 +1,4 @@
-"""Tests for lobe boundary segmentation baseline utilities."""
+"""Тесты утилит базовой сегментации границ долей."""
 
 from __future__ import annotations
 

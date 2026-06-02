@@ -1,4 +1,4 @@
-"""Evaluate a YOLO segmentation model for nucleus lobe counting."""
+"""Оценивает модель сегментации YOLO для подсчета долей ядра."""
 
 # ruff: noqa: E402
 
@@ -29,7 +29,7 @@ DEFAULT_OUTPUT_DIR = PATHS.outputs / "yolo_lobes_eval"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Evaluate YOLO-seg lobe instance predictions.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _load_yolo_class() -> Any:
-    """Import Ultralytics lazily."""
+    """Лениво импортирует Ultralytics."""
 
     try:
         from ultralytics import YOLO
@@ -60,8 +60,7 @@ def _load_yolo_class() -> Any:
 
 
 def _mask_areas(result: Any) -> list[int]:
-    """Return predicted mask areas from one Ultralytics result."""
-
+    """Возвращает площади предсказанных масок из одного результата Ultralytics."""
     masks = getattr(result, "masks", None)
     if masks is None:
         return []
@@ -75,8 +74,7 @@ def _mask_areas(result: Any) -> list[int]:
 
 
 def _mean_confidence(result: Any) -> float:
-    """Return the mean box confidence for one Ultralytics result."""
-
+    """Возвращает среднюю уверенность рамок для одного результата Ultralytics."""
     boxes = getattr(result, "boxes", None)
     confidences = getattr(boxes, "conf", None) if boxes is not None else None
     if confidences is None or len(confidences) == 0:
@@ -85,8 +83,7 @@ def _mean_confidence(result: Any) -> float:
 
 
 def _save_plot(result: Any, path: Path) -> str:
-    """Save one rendered Ultralytics prediction plot."""
-
+    """Сохраняет один отрисованный график предсказания Ultralytics."""
     path.parent.mkdir(parents=True, exist_ok=True)
     plotted = result.plot()
     Image.fromarray(np.asarray(plotted)).save(path)
@@ -94,8 +91,7 @@ def _save_plot(result: Any, path: Path) -> str:
 
 
 def _predict(model: Any, image_paths: list[Path], args: argparse.Namespace) -> list[Any]:
-    """Run YOLO prediction over image paths."""
-
+    """Запускает предсказание YOLO по путям изображений."""
     predict_kwargs: dict[str, Any] = {
         "source": [path.as_posix() for path in image_paths],
         "imgsz": args.image_size,
@@ -110,8 +106,7 @@ def _predict(model: Any, image_paths: list[Path], args: argparse.Namespace) -> l
 
 
 def write_outputs(output_dir: Path, summary: dict[str, Any], rows: list[dict[str, Any]]) -> None:
-    """Write metrics JSON and CSV."""
-
+    """Записывает JSON с метриками и CSV."""
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "metrics.json").write_text(
         json.dumps({"summary": summary, "samples": rows}, indent=2),
@@ -124,7 +119,7 @@ def write_outputs(output_dir: Path, summary: dict[str, Any], rows: list[dict[str
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     if not args.weights_path.is_file():

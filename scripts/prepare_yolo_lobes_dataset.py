@@ -1,5 +1,4 @@
-"""Prepare an Ultralytics YOLO segmentation dataset for nucleus lobes."""
-
+"""Подготавливает набор данных сегментации Ultralytics YOLO для долей ядра."""
 # ruff: noqa: E402
 
 from __future__ import annotations
@@ -21,7 +20,7 @@ DEFAULT_OUTPUT_DIR = PATHS.processed_data / "nucleus_lobes" / "yolo_seg"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Convert curated nucleus lobe instance masks to YOLO segmentation labels."
@@ -45,7 +44,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     rows = prepare_yolo_lobe_dataset(

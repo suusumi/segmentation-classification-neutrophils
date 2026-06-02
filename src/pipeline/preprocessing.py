@@ -1,4 +1,4 @@
-"""Image validation and preprocessing for single-cell neutrophil images."""
+"""Проверка и предобработка изображений одиночных нейтрофилов."""
 
 from __future__ import annotations
 
@@ -15,8 +15,7 @@ from src.services.errors import UploadValidationError
 
 @dataclass(frozen=True)
 class PreprocessedImage:
-    """RGB image and normalized representation used by downstream steps."""
-
+    """RGB-изображение и нормализованное представление для последующих шагов."""
     rgb: np.ndarray
     normalized_rgb: np.ndarray
     width: int
@@ -24,8 +23,7 @@ class PreprocessedImage:
 
 
 def validate_image_path(path: Path) -> None:
-    """Validate image file extension and existence."""
-
+    """Проверяет расширение файла изображения и его существование."""
     if not path.is_file():
         raise UploadValidationError(f"Image file does not exist: {path}")
     if path.suffix.lower() not in SETTINGS.allowed_image_extensions:
@@ -33,8 +31,7 @@ def validate_image_path(path: Path) -> None:
 
 
 def load_rgb_image(path: Path) -> np.ndarray:
-    """Load an image as an RGB numpy array."""
-
+    """Загружает изображение как RGB-массив numpy."""
     validate_image_path(path)
     try:
         with Image.open(path) as image:
@@ -44,8 +41,7 @@ def load_rgb_image(path: Path) -> np.ndarray:
 
 
 def preprocess_image(path: Path) -> PreprocessedImage:
-    """Load and normalize an image for nucleus segmentation."""
-
+    """Загружает и нормализует изображение для сегментации ядра."""
     rgb = load_rgb_image(path)
     normalized = exposure.rescale_intensity(rgb, in_range="image", out_range=(0, 255)).astype(
         np.uint8

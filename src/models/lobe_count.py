@@ -1,4 +1,4 @@
-"""Small CNN baseline for nucleus lobe counting."""
+"""Небольшая базовая CNN для подсчета долей ядра."""
 
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from torch import nn
 
 
 class ConvBlock(nn.Module):
-    """Convolutional downsampling block."""
-
+    """Сверточный блок с понижением размерности."""
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__()
         self.block = nn.Sequential(
@@ -28,8 +27,7 @@ class ConvBlock(nn.Module):
 
 
 class LobeCountCNN(nn.Module):
-    """Compact classifier for segment count from RGB image plus nucleus mask."""
-
+    """Компактный классификатор числа сегментов по RGB-изображению и маске ядра."""
     def __init__(
         self,
         in_channels: int = 4,

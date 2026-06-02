@@ -1,4 +1,4 @@
-"""Evaluate lobe foreground/boundary U-Net."""
+"""Оценивает U-Net для переднего плана и границ долей."""
 
 # ruff: noqa: E402
 
@@ -38,7 +38,7 @@ DEFAULT_PREDICTED_MASK_DIR = PATHS.processed_data / "nucleus_lobes" / "predicted
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Evaluate lobe foreground/boundary U-Net.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -70,16 +70,14 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_name: str) -> torch.device:
-    """Resolve a CLI device name into a torch device."""
-
+    """Преобразует имя устройства из CLI в устройство torch."""
     if device_name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_name)
 
 
 def load_checkpoint(weights_path: Path, device: torch.device) -> dict[str, Any]:
-    """Load a lobe boundary checkpoint."""
-
+    """Загружает чекпоинт границ долей."""
     if not weights_path.is_file():
         raise FileNotFoundError(f"Weights file does not exist: {weights_path}")
     checkpoint = torch.load(weights_path, map_location=device)
@@ -92,8 +90,7 @@ def build_model_from_checkpoint(
     checkpoint: dict[str, Any],
     device: torch.device,
 ) -> tuple[UNet, int]:
-    """Build U-Net from a checkpoint."""
-
+    """Создает U-Net из чекпоинта."""
     model_config = checkpoint.get("model_config", {})
     model = UNet(
         in_channels=int(model_config.get("in_channels", 4)),
@@ -112,16 +109,14 @@ def _setting(
     name: str,
     default: float | int,
 ) -> float | int:
-    """Resolve a CLI override or checkpoint postprocessing setting."""
-
+    """Разрешает переопределение из CLI или настройку постобработки из чекпоинта."""
     if cli_value is not None:
         return cli_value
     return cast(float | int, checkpoint.get("postprocessing", {}).get(name, default))
 
 
 def dice_score(prediction: np.ndarray, target: np.ndarray, eps: float = 1e-7) -> float:
-    """Compute binary Dice score."""
-
+    """Вычисляет бинарную метрику Dice."""
     prediction = prediction.astype(bool)
     target = target.astype(bool)
     intersection = np.logical_and(prediction, target).sum()
@@ -130,8 +125,7 @@ def dice_score(prediction: np.ndarray, target: np.ndarray, eps: float = 1e-7) ->
 
 
 def save_labeled_mask(mask: np.ndarray, path: Path) -> Path:
-    """Save a small deterministic color visualization for labeled components."""
-
+    """Сохраняет небольшую детерминированную цветовую визуализацию размеченных компонентов."""
     path.parent.mkdir(parents=True, exist_ok=True)
     palette = np.asarray(
         [
@@ -158,8 +152,7 @@ def evaluate(
     output_dir: Path,
     settings: dict[str, float | int],
 ) -> tuple[list[dict[str, Any]], list[int], list[int]]:
-    """Run evaluation and save per-sample masks."""
-
+    """Запускает оценку и сохраняет маски для каждого образца."""
     rows: list[dict[str, Any]] = []
     targets_all: list[int] = []
     predictions_all: list[int] = []
@@ -236,8 +229,7 @@ def write_outputs(
     summary: dict[str, Any],
     rows: list[dict[str, Any]],
 ) -> None:
-    """Write metrics JSON and CSV."""
-
+    """Записывает JSON с метриками и CSV."""
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "metrics.json").write_text(
         json.dumps({"summary": summary, "samples": rows}, indent=2),
@@ -250,7 +242,7 @@ def write_outputs(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     device = resolve_device(args.device)

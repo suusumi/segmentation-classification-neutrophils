@@ -1,5 +1,4 @@
-"""Application service for upload validation and pipeline execution."""
-
+"""Сервис приложения для проверки загрузок и выполнения пайплайна."""
 from __future__ import annotations
 
 import csv
@@ -19,8 +18,7 @@ CURATED_LOBE_MANIFEST_PATH = PATHS.processed_data / "nucleus_lobes" / "curated" 
 
 
 class AnalysisService:
-    """Coordinates upload storage, pipeline execution, and result persistence."""
-
+    """Координирует хранение загрузок, выполнение пайплайна и сохранение результатов."""
     def __init__(
         self,
         repository: SQLiteAnalysisRepository,
@@ -36,8 +34,7 @@ class AnalysisService:
         content_type: str | None,
         content: bytes,
     ) -> dict:
-        """Save an uploaded image, run analysis, and return a JSON result."""
-
+        """Сохраняет загруженное изображение, запускает анализ и возвращает JSON-результат."""
         self._validate_upload_metadata(
             filename=filename,
             content_type=content_type,
@@ -88,8 +85,7 @@ class AnalysisService:
         content_type: str | None,
         content: bytes,
     ) -> dict:
-        """Run lobe analysis using a curated CVAT nucleus mask matched by filename."""
-
+        """Запускает анализ долей с использованием курируемой маски ядра CVAT, сопоставленной по имени файла."""
         self._validate_upload_metadata(
             filename=filename,
             content_type=content_type,
@@ -147,8 +143,7 @@ class AnalysisService:
         content_type: str | None,
         content: bytes,
     ) -> dict:
-        """Run analysis with YOLO-seg as the lobe counter."""
-
+        """Запускает анализ с YOLO-seg в роли счетчика долей."""
         self._validate_upload_metadata(
             filename=filename,
             content_type=content_type,
@@ -198,8 +193,7 @@ class AnalysisService:
         return result_payload
 
     def get_analysis(self, analysis_id: str) -> dict:
-        """Return persisted analysis metadata and result."""
-
+        """Возвращает сохраненные метаданные и результат анализа."""
         return self.repository.get(analysis_id)
 
     def _validate_upload_metadata(
@@ -225,8 +219,7 @@ class AnalysisService:
 
     @staticmethod
     def _safe_filename(filename: str) -> str:
-        """Normalize browser-supplied filenames from Windows or POSIX clients."""
-
+        """Нормализует имена файлов, переданные браузером от клиентов Windows или POSIX."""
         windows_name = PureWindowsPath(filename).name
         safe_name = Path(windows_name).name
         if not safe_name:
@@ -243,8 +236,7 @@ class AnalysisService:
 
     @staticmethod
     def _find_curated_nucleus_mask(filename: str) -> Path:
-        """Find a curated lobe nucleus mask by uploaded filename stem."""
-
+        """Находит курируемую маску ядра для долей по основе имени загруженного файла."""
         if not CURATED_LOBE_MANIFEST_PATH.is_file():
             raise UploadValidationError(
                 "Curated lobe manifest is not available for lobe-only debug mode."

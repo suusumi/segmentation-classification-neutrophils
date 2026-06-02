@@ -1,4 +1,4 @@
-"""Evaluate a trained nucleus lobe count baseline."""
+"""Оценивает обученную базовую модель подсчета долей ядра."""
 
 # ruff: noqa: E402
 
@@ -35,7 +35,7 @@ DEFAULT_OUTPUT_DIR = PATHS.outputs / "lobe_count_eval"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Evaluate a nucleus lobe count classifier.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -55,16 +55,14 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_name: str) -> torch.device:
-    """Resolve a CLI device name into a torch device."""
-
+    """Преобразует имя устройства из CLI в устройство torch."""
     if device_name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_name)
 
 
 def load_checkpoint(weights_path: Path, device: torch.device) -> dict[str, Any]:
-    """Load a lobe count checkpoint."""
-
+    """Загружает чекпоинт подсчета долей."""
     if not weights_path.is_file():
         raise FileNotFoundError(f"Weights file does not exist: {weights_path}")
     checkpoint = torch.load(weights_path, map_location=device)
@@ -77,8 +75,7 @@ def build_model_from_checkpoint(
     checkpoint: dict[str, Any],
     device: torch.device,
 ) -> tuple[LobeCountCNN, list[int], int]:
-    """Build a model and class list from a checkpoint."""
-
+    """Создает модель и список классов из чекпоинта."""
     model_config = checkpoint.get("model_config", {})
     class_values = [int(value) for value in checkpoint.get("class_values", [])]
     if not class_values:
@@ -104,8 +101,7 @@ def predict(
     device: torch.device,
     hypersegmentation_threshold: int,
 ) -> tuple[list[dict[str, Any]], list[int], list[int]]:
-    """Run prediction and return per-sample rows plus raw targets/predictions."""
-
+    """Запускает предсказание и возвращает строки по образцам, а также сырые целевые и предсказанные значения."""
     rows: list[dict[str, Any]] = []
     targets_all: list[int] = []
     predictions_all: list[int] = []
@@ -143,8 +139,7 @@ def write_outputs(
     summary: dict[str, Any],
     rows: list[dict[str, Any]],
 ) -> None:
-    """Write metrics JSON and per-sample CSV."""
-
+    """Записывает JSON с метриками и CSV по образцам."""
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "metrics.json").write_text(
         json.dumps({"summary": summary, "samples": rows}, indent=2),
@@ -157,7 +152,7 @@ def write_outputs(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     device = resolve_device(args.device)

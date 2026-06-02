@@ -1,4 +1,4 @@
-"""Dataset utilities for blood smear image analysis."""
+"""Утилиты наборов данных для анализа изображений мазка крови."""
 
 from .acevedo_dataset import AcevedoDataset, to_binary_label
 from .nucleus_lobe_count_dataset import (

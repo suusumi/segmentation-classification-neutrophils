@@ -1,4 +1,4 @@
-"""Minimal U-Net architecture for future nucleus segmentation training."""
+"""Минимальная архитектура U-Net для будущего обучения сегментации ядра."""
 
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from torch import nn
 
 
 class DoubleConv(nn.Module):
-    """Two convolution blocks used throughout U-Net."""
-
+    """Два сверточных блока, используемые во всей U-Net."""
     def __init__(self, in_channels: int, out_channels: int) -> None:
         super().__init__()
         self.block = nn.Sequential(
@@ -27,8 +26,7 @@ class DoubleConv(nn.Module):
 
 
 class UNet(nn.Module):
-    """Small U-Net suitable for binary nucleus segmentation."""
-
+    """Небольшая U-Net для бинарной сегментации ядра."""
     def __init__(
         self,
         in_channels: int = 3,

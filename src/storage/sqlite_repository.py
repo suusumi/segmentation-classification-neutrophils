@@ -1,4 +1,4 @@
-"""SQLite-backed analysis metadata repository."""
+"""Репозиторий метаданных анализа на базе SQLite."""
 
 from __future__ import annotations
 
@@ -12,8 +12,7 @@ from src.services.errors import AnalysisNotFoundError
 
 
 class SQLiteAnalysisRepository:
-    """Persist analysis records in a local SQLite database."""
-
+    """Сохраняет записи анализа в локальной базе данных SQLite."""
     def __init__(self, db_path: Path) -> None:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -72,7 +71,7 @@ class SQLiteAnalysisRepository:
                 raise AnalysisNotFoundError(f"Analysis not found: {analysis_id}")
 
     def update_status(self, analysis_id: str, status: str) -> None:
-        """Update analysis status without changing its result payload."""
+        """Обновляет статус анализа, не меняя полезную нагрузку результата."""
 
         now = datetime.now(UTC).isoformat()
         with self._connect() as connection:

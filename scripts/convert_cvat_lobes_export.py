@@ -1,4 +1,4 @@
-"""Convert CVAT COCO instance exports into a nucleus-lobe dataset."""
+"""Преобразует экспорт экземпляров COCO из CVAT в набор данных долей ядра."""
 
 # ruff: noqa: E402
 
@@ -32,8 +32,7 @@ DEFAULT_LABEL = "nucleus_lobe"
 
 @dataclass(frozen=True)
 class CuratedLobeRow:
-    """One curated sample with instance-level nucleus lobe labels."""
-
+    """Один курируемый образец с метками долей ядра на уровне экземпляров."""
     image_id: str
     source_image_path: Path
     image_path: Path
@@ -43,8 +42,7 @@ class CuratedLobeRow:
     split: str
 
     def to_row(self) -> dict[str, str | int]:
-        """Return a manifest row with project-relative paths."""
-
+        """Возвращает строку манифеста с путями относительно проекта."""
         return {
             "image_id": self.image_id,
             "source_image_path": to_project_relative_str(self.source_image_path),
@@ -57,7 +55,7 @@ class CuratedLobeRow:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Convert CVAT COCO instance annotations into lobe instance masks."
@@ -108,14 +106,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def _is_image_file(path: Path) -> bool:
-    """Return True for supported image files."""
-
+    """Возвращает True для поддерживаемых файлов изображений."""
     return path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
 
 
 def _find_coco_json(cvat_dir: Path) -> Path:
-    """Find the COCO annotation JSON in an unpacked CVAT export."""
-
+    """Находит JSON с аннотациями COCO в распакованном экспорте CVAT."""
     candidates = [
         cvat_dir / "annotations" / "instances_default.json",
         cvat_dir / "instances_default.json",
@@ -130,8 +126,7 @@ def _find_coco_json(cvat_dir: Path) -> Path:
 
 
 def _load_coco(coco_json: Path) -> dict[str, Any]:
-    """Load and minimally validate a COCO annotation file."""
-
+    """Загружает файл аннотаций COCO и выполняет минимальную проверку."""
     if not coco_json.is_file():
         raise FileNotFoundError(f"COCO JSON does not exist: {coco_json}")
     data = cast(dict[str, Any], json.loads(coco_json.read_text(encoding="utf-8")))
@@ -142,8 +137,7 @@ def _load_coco(coco_json: Path) -> dict[str, Any]:
 
 
 def _index_source_images(source_images_dir: Path) -> dict[str, Path]:
-    """Index source images by file name and stem."""
-
+    """Индексирует исходные изображения по имени файла и основе имени."""
     if not source_images_dir.is_dir():
         raise NotADirectoryError(f"Source images directory does not exist: {source_images_dir}")
 
@@ -158,8 +152,7 @@ def _index_source_images(source_images_dir: Path) -> dict[str, Path]:
 
 
 def _resolve_source_image(file_name: str, source_images: dict[str, Path]) -> Path:
-    """Resolve a COCO image file name against the source image index."""
-
+    """Сопоставляет имя файла изображения COCO с индексом исходных изображений."""
     file_path = Path(file_name)
     for key in (file_path.as_posix(), file_path.name, file_path.stem):
         if key in source_images:
@@ -168,8 +161,7 @@ def _resolve_source_image(file_name: str, source_images: dict[str, Path]) -> Pat
 
 
 def _validate_fractions(val_fraction: float, test_fraction: float) -> None:
-    """Validate split fractions."""
-
+    """Проверяет доли разбиений."""
     if not 0.0 <= val_fraction < 1.0:
         raise ValueError(f"val_fraction must be in [0, 1), got {val_fraction}")
     if not 0.0 <= test_fraction < 1.0:
@@ -184,8 +176,7 @@ def assign_splits(
     test_fraction: float,
     seed: int,
 ) -> dict[str, str]:
-    """Assign deterministic train/val/test splits."""
-
+    """Назначает детерминированные разбиения train/val/test."""
     _validate_fractions(val_fraction, test_fraction)
     shuffled = image_ids.copy()
     random.Random(seed).shuffle(shuffled)
@@ -204,8 +195,7 @@ def assign_splits(
 
 
 def _category_ids_by_name(coco: dict[str, Any], label: str) -> set[int]:
-    """Return COCO category ids that match the requested label."""
-
+    """Возвращает идентификаторы категорий COCO, соответствующие запрошенной метке."""
     category_ids = {
         int(category["id"])
         for category in coco["categories"]
@@ -220,8 +210,7 @@ def _category_ids_by_name(coco: dict[str, Any], label: str) -> set[int]:
 
 
 def _polygon_points(segmentation: list[float]) -> list[tuple[float, float]]:
-    """Convert one flat COCO polygon into PIL-compatible points."""
-
+    """Преобразует один плоский полигон COCO в точки, совместимые с PIL."""
     if len(segmentation) < 6 or len(segmentation) % 2 != 0:
         raise ValueError("COCO polygon segmentation must contain x/y coordinate pairs.")
     return [
@@ -235,8 +224,7 @@ def _draw_annotation(
     annotation: dict[str, Any],
     instance_id: int,
 ) -> None:
-    """Draw one polygon annotation into an instance mask."""
-
+    """Рисует одну полигональную аннотацию в маске экземпляров."""
     segmentation = annotation.get("segmentation")
     if isinstance(segmentation, dict):
         raise ValueError(
@@ -264,8 +252,7 @@ def build_lobe_instance_mask(
     image_height: int,
     annotations: list[dict[str, Any]],
 ) -> np.ndarray:
-    """Build a uint16 instance mask where each lobe has a separate id."""
-
+    """Строит uint16-маску экземпляров, где каждая доля имеет отдельный id."""
     if not annotations:
         raise ValueError("Image has no nucleus_lobe annotations.")
     if len(annotations) > np.iinfo(np.uint16).max:
@@ -281,8 +268,7 @@ def build_lobe_instance_mask(
 
 
 def _copy_image(source_path: Path, destination_path: Path, overwrite: bool) -> None:
-    """Copy one source image into the curated dataset."""
-
+    """Копирует одно исходное изображение в курируемый набор данных."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -290,8 +276,7 @@ def _copy_image(source_path: Path, destination_path: Path, overwrite: bool) -> N
 
 
 def _save_instance_mask(mask: np.ndarray, destination_path: Path, overwrite: bool) -> None:
-    """Save a uint16 lobe instance mask."""
-
+    """Сохраняет uint16-маску экземпляров долей."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -299,8 +284,7 @@ def _save_instance_mask(mask: np.ndarray, destination_path: Path, overwrite: boo
 
 
 def _save_binary_mask(mask: np.ndarray, destination_path: Path, overwrite: bool) -> None:
-    """Save the union of all lobe instances as a binary nucleus mask."""
-
+    """Сохраняет объединение всех экземпляров долей как бинарную маску ядра."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -320,8 +304,7 @@ def convert_cvat_lobes_export(
     overwrite: bool = False,
     skip_empty: bool = True,
 ) -> list[CuratedLobeRow]:
-    """Convert a CVAT COCO instance export into curated lobe masks."""
-
+    """Преобразует экспорт экземпляров COCO из CVAT в курируемые маски долей."""
     annotation_json = coco_json or _find_coco_json(cvat_dir)
     coco = _load_coco(annotation_json)
     category_ids = _category_ids_by_name(coco, label=label)
@@ -408,8 +391,7 @@ def convert_cvat_lobes_export(
 
 
 def save_manifest(rows: list[CuratedLobeRow], manifest_path: Path) -> Path:
-    """Write a curated lobe dataset manifest."""
-
+    """Записывает манифест курируемого набора данных долей."""
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "image_id",
@@ -429,7 +411,7 @@ def save_manifest(rows: list[CuratedLobeRow], manifest_path: Path) -> Path:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     rows = convert_cvat_lobes_export(

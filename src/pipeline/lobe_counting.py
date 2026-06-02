@@ -1,4 +1,4 @@
-"""Lobe counting backends for neutrophil nuclei."""
+"""Бэкенды подсчета долей ядер нейтрофилов."""
 
 from __future__ import annotations
 
@@ -19,18 +19,15 @@ from src.services.errors import PipelineError
 
 
 class LobeCounter(Protocol):
-    """Interface for nucleus lobe counting backends."""
-
+    """Интерфейс для бэкендов подсчета долей ядра."""
     name: str
 
     def count(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> "LobeCountResult":
-        """Return lobe masks and count statistics."""
-
+        """Возвращает маски долей и статистику подсчета."""
 
 @dataclass(frozen=True)
 class LobeCountResult:
-    """Pipeline-friendly lobe counting output."""
-
+    """Результат подсчета долей, удобный для пайплайна."""
     segment_count: SegmentCountResult
     foreground_mask: np.ndarray | None = None
     boundary_mask: np.ndarray | None = None
@@ -39,14 +36,12 @@ class LobeCountResult:
 
 @dataclass
 class WatershedLobeCounter:
-    """Classical fallback that counts lobes from the binary nucleus mask."""
-
+    """Классическая резервная реализация, подсчитывающая доли по бинарной маске ядра."""
     config: SegmentCountConfig = field(default_factory=SegmentCountConfig)
     name: str = "watershed"
 
     def count(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> LobeCountResult:
-        """Count lobe-like components with distance-transform watershed."""
-
+        """Подсчитывает компоненты, похожие на доли, с помощью watershed по преобразованию расстояния."""
         del rgb_image
         segment_count = count_nucleus_segments(nucleus_mask, config=self.config)
         return LobeCountResult(segment_count=segment_count, split_mask=segment_count.labeled_mask)
@@ -54,8 +49,7 @@ class WatershedLobeCounter:
 
 @dataclass
 class UNetLobeBoundaryCounter:
-    """U-Net adapter that predicts lobe foreground and separating boundaries."""
-
+    """Адаптер U-Net, предсказывающий передний план долей и разделяющие границы."""
     weights_path: Path
     name: str = "lobe_boundary_unet"
     foreground_threshold: float = 0.5
@@ -76,8 +70,7 @@ class UNetLobeBoundaryCounter:
     )
 
     def count(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> LobeCountResult:
-        """Run lobe boundary U-Net and return countable split components."""
-
+        """Запускает U-Net границ долей и возвращает подсчитываемые разделенные компоненты."""
         if rgb_image.ndim != 3 or rgb_image.shape[2] != 3:
             raise PipelineError("Expected RGB image for lobe boundary U-Net.")
         if nucleus_mask.shape != rgb_image.shape[:2]:
@@ -120,15 +113,13 @@ class UNetLobeBoundaryCounter:
         )
 
     def _resolve_device(self) -> torch.device:
-        """Return the torch device used for inference."""
-
+        """Возвращает устройство torch, используемое для инференса."""
         if self.device_name == "auto":
             return torch.device("cuda" if torch.cuda.is_available() else "cpu")
         return torch.device(self.device_name)
 
     def _load_model(self) -> UNet:
-        """Load and cache the lobe boundary U-Net model."""
-
+        """Загружает и кэширует модель U-Net границ долей."""
         if self._model is not None:
             return self._model
 
@@ -160,8 +151,7 @@ class UNetLobeBoundaryCounter:
         return model
 
     def _load_normalization(self, checkpoint: dict[str, Any]) -> None:
-        """Load normalization parameters from a checkpoint when present."""
-
+        """Загружает параметры нормализации из чекпоинта, если они есть."""
         normalization = checkpoint.get("normalization", {})
         mean = normalization.get("mean")
         std = normalization.get("std")
@@ -171,8 +161,7 @@ class UNetLobeBoundaryCounter:
             self._std = cast(tuple[float, float, float], tuple(float(value) for value in std))
 
     def _prepare_tensor(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> torch.Tensor:
-        """Resize, normalize, and concatenate RGB image with the nucleus mask."""
-
+        """Изменяет размер, нормализует и объединяет RGB-изображение с маской ядра."""
         image = rgb_image.astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image).permute(2, 0, 1).unsqueeze(0)
         image_tensor = torch_functional.interpolate(
@@ -201,8 +190,7 @@ class UNetLobeBoundaryCounter:
 
 @dataclass
 class YOLOLobeInstanceCounter:
-    """Ultralytics YOLO-seg adapter that counts one predicted mask per nucleus lobe."""
-
+    """Адаптер Ultralytics YOLO-seg, считающий одну предсказанную маску на долю ядра."""
     weights_path: Path
     name: str = "yolo_lobes_seg"
     confidence: float = 0.40
@@ -213,8 +201,7 @@ class YOLOLobeInstanceCounter:
     _model: Any | None = field(default=None, init=False, repr=False)
 
     def count(self, rgb_image: np.ndarray, nucleus_mask: np.ndarray) -> LobeCountResult:
-        """Run YOLO lobe instance segmentation and return countable components."""
-
+        """Запускает сегментацию экземпляров долей YOLO и возвращает подсчитываемые компоненты."""
         del nucleus_mask
         if rgb_image.ndim != 3 or rgb_image.shape[2] != 3:
             raise PipelineError("Expected RGB image for YOLO lobe segmentation.")
@@ -252,8 +239,7 @@ class YOLOLobeInstanceCounter:
         )
 
     def _load_model(self) -> Any:
-        """Load and cache the Ultralytics model."""
-
+        """Загружает и кэширует модель Ultralytics."""
         if self._model is not None:
             return self._model
         try:
@@ -271,15 +257,13 @@ class YOLOLobeInstanceCounter:
         return self._model
 
     def _device_argument(self) -> str | None:
-        """Return an Ultralytics device argument."""
-
+        """Возвращает аргумент устройства для Ultralytics."""
         if self.device_name == "auto":
             return "0" if torch.cuda.is_available() else "cpu"
         return self.device_name
 
     def _result_to_labeled_mask(self, result: Any, shape: tuple[int, int]) -> np.ndarray:
-        """Convert Ultralytics masks into a labeled component image."""
-
+        """Преобразует маски Ultralytics в изображение размеченных компонентов."""
         height, width = shape
         labeled = np.zeros((height, width), dtype=np.int32)
         masks = getattr(result, "masks", None)
@@ -316,8 +300,7 @@ class YOLOLobeInstanceCounter:
 
     @staticmethod
     def _resize_mask(mask: np.ndarray, size: tuple[int, int]) -> np.ndarray:
-        """Resize a binary mask to ``(width, height)`` with nearest neighbor."""
-
+        """Изменяет размер бинарной маски до ``(width, height)`` методом ближайшего соседа."""
         if mask.shape == (size[1], size[0]):
             return mask.astype(bool)
         image = Image.fromarray(mask.astype(np.uint8) * 255)
@@ -325,8 +308,7 @@ class YOLOLobeInstanceCounter:
 
 
 def _segment_count_from_labeled_mask(labeled_mask: np.ndarray) -> SegmentCountResult:
-    """Build count statistics from a labeled lobe mask."""
-
+    """Строит статистику подсчета по размеченной маске долей."""
     regions = regionprops(labeled_mask)
     if not regions:
         return SegmentCountResult(

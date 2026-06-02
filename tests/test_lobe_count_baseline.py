@@ -1,4 +1,4 @@
-"""Tests for nucleus lobe count baseline utilities."""
+"""Тесты утилит базовой модели подсчета долей ядра."""
 
 from __future__ import annotations
 

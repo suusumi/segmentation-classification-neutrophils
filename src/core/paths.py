@@ -1,8 +1,8 @@
-"""Project-relative path helpers.
+"""Утилиты путей относительно проекта.
 
-The application never relies on user-specific absolute paths. Runtime paths are
-derived from the repository root and converted back to relative strings for API
-responses and persisted metadata.
+Приложение не полагается на пользовательские абсолютные пути. Пути времени выполнения
+выводятся из корня репозитория и преобразуются обратно в относительные строки для
+ответов API и сохраненных метаданных.
 """
 
 from __future__ import annotations
@@ -15,22 +15,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 def project_path(*parts: str | Path) -> Path:
-    """Build a path relative to the project root."""
-
+    """Строит путь относительно корня проекта."""
     return PROJECT_ROOT.joinpath(*parts)
 
 
 def ensure_project_dir(*parts: str | Path) -> Path:
-    """Create and return a directory under the project root."""
-
+    """Создает и возвращает каталог внутри корня проекта."""
     directory = project_path(*parts)
     directory.mkdir(parents=True, exist_ok=True)
     return directory
 
 
 def to_project_relative(path: str | Path) -> Path:
-    """Return a path relative to the project root when possible."""
-
+    """Возвращает путь относительно корня проекта, когда это возможно."""
     resolved = Path(path).resolve()
     try:
         return resolved.relative_to(PROJECT_ROOT)
@@ -39,14 +36,13 @@ def to_project_relative(path: str | Path) -> Path:
 
 
 def to_project_relative_str(path: str | Path) -> str:
-    """Return a POSIX-style path for stable JSON responses on every OS."""
-
+    """Возвращает путь в POSIX-стиле для стабильных JSON-ответов на любой ОС."""
     return to_project_relative(path).as_posix()
 
 
 @dataclass(frozen=True)
 class ProjectPaths:
-    """Common project directories."""
+    """Общие каталоги проекта."""
 
     root: Path = PROJECT_ROOT
     data: Path = project_path("data")
@@ -60,8 +56,7 @@ class ProjectPaths:
     logs: Path = project_path("outputs", "logs")
 
     def ensure_runtime_dirs(self) -> None:
-        """Create directories used by the API and analysis pipeline."""
-
+        """Создает каталоги, используемые API и пайплайном анализа."""
         for directory in (
             self.raw_data,
             self.interim_data,
@@ -76,4 +71,3 @@ class ProjectPaths:
 
 
 PATHS = ProjectPaths()
-

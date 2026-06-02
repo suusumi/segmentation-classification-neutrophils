@@ -1,4 +1,4 @@
-"""Nucleus segmentation interfaces and baseline implementations."""
+"""Интерфейсы сегментации ядра и базовые реализации."""
 
 from __future__ import annotations
 
@@ -17,24 +17,20 @@ from src.services.errors import PipelineError
 
 
 class NucleusSegmenter(Protocol):
-    """Interface for nucleus segmentation backends."""
-
+    """Интерфейс для бэкендов сегментации ядра."""
     name: str
 
     def segment(self, rgb_image: np.ndarray) -> np.ndarray:
-        """Return a binary nucleus mask."""
-
+        """Возвращает бинарную маску ядра."""
 
 @dataclass
 class ThresholdNucleusSegmenter:
-    """Classical fallback segmenter used until trained U-Net weights exist."""
-
+    """Классический резервный сегментатор, используемый до появления обученных весов U-Net."""
     name: str = "threshold"
     gaussian_sigma: float = 1.0
 
     def segment(self, rgb_image: np.ndarray) -> np.ndarray:
-        """Segment dark blue-purple nucleus regions with adaptive thresholding."""
-
+        """Сегментирует темные сине-фиолетовые области ядра с помощью адаптивной пороговой обработки."""
         if rgb_image.ndim != 3 or rgb_image.shape[2] != 3:
             raise PipelineError("Expected RGB image for segmentation.")
 
@@ -54,8 +50,7 @@ class ThresholdNucleusSegmenter:
 
 @dataclass
 class UNetNucleusSegmenter:
-    """U-Net segmenter adapter for trained nucleus segmentation weights."""
-
+    """Адаптер сегментатора U-Net для обученных весов сегментации ядра."""
     weights_path: Path
     name: str = "unet"
     threshold: float = 0.5
@@ -74,8 +69,7 @@ class UNetNucleusSegmenter:
     )
 
     def segment(self, rgb_image: np.ndarray) -> np.ndarray:
-        """Run U-Net inference and return a binary nucleus mask."""
-
+        """Запускает инференс U-Net и возвращает бинарную маску ядра."""
         if rgb_image.ndim != 3 or rgb_image.shape[2] != 3:
             raise PipelineError("Expected RGB image for U-Net segmentation.")
         if not self.weights_path.is_file():
@@ -102,15 +96,13 @@ class UNetNucleusSegmenter:
         return cast(np.ndarray, mask)
 
     def _resolve_device(self) -> torch.device:
-        """Return the torch device used for inference."""
-
+        """Возвращает устройство torch, используемое для инференса."""
         if self.device_name == "auto":
             return torch.device("cuda" if torch.cuda.is_available() else "cpu")
         return torch.device(self.device_name)
 
     def _load_model(self) -> UNet:
-        """Load and cache the U-Net model."""
-
+        """Загружает и кэширует модель U-Net."""
         if self._model is not None:
             return self._model
 
@@ -138,8 +130,7 @@ class UNetNucleusSegmenter:
         return model
 
     def _load_normalization(self, checkpoint: dict[str, Any]) -> None:
-        """Load normalization parameters from a checkpoint when present."""
-
+        """Загружает параметры нормализации из чекпоинта, если они есть."""
         normalization = checkpoint.get("normalization", {})
         mean = normalization.get("mean")
         std = normalization.get("std")
@@ -149,8 +140,7 @@ class UNetNucleusSegmenter:
             self._std = cast(tuple[float, float, float], tuple(float(value) for value in std))
 
     def _prepare_tensor(self, rgb_image: np.ndarray) -> torch.Tensor:
-        """Resize and normalize an RGB image for U-Net inference."""
-
+        """Изменяет размер и нормализует RGB-изображение для инференса U-Net."""
         image = rgb_image.astype(np.float32) / 255.0
         tensor = torch.from_numpy(image).permute(2, 0, 1).unsqueeze(0)
         tensor = torch_functional.interpolate(

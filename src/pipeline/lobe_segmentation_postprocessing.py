@@ -1,4 +1,4 @@
-"""Postprocessing for lobe foreground and boundary predictions."""
+"""Постобработка предсказаний переднего плана и границ долей."""
 
 from __future__ import annotations
 
@@ -12,8 +12,7 @@ from skimage.measure import label, regionprops
 
 @dataclass(frozen=True)
 class LobeSegmentationPrediction:
-    """Postprocessed lobe segmentation result."""
-
+    """Постобработанный результат сегментации долей."""
     segment_count: int
     split_mask: np.ndarray
     foreground_mask: np.ndarray
@@ -21,8 +20,7 @@ class LobeSegmentationPrediction:
 
 
 def _filter_labeled_mask(labeled_mask: np.ndarray, min_area_px: int) -> np.ndarray:
-    """Remove small labeled regions and relabel the remaining components."""
-
+    """Удаляет малые размеченные области и заново размечает оставшиеся компоненты."""
     filtered = np.zeros(labeled_mask.shape, dtype=np.int32)
     next_label = 1
     for region in regionprops(labeled_mask):
@@ -37,8 +35,7 @@ def _assign_foreground_to_components(
     component_mask: np.ndarray,
     foreground_mask: np.ndarray,
 ) -> np.ndarray:
-    """Expand component labels across the full predicted foreground."""
-
+    """Расширяет метки компонентов на весь предсказанный передний план."""
     if component_mask.max() == 0:
         return component_mask
     _, nearest_indices = ndi.distance_transform_edt(
@@ -58,8 +55,7 @@ def postprocess_lobe_segmentation(
     min_segment_area_px: int = 32,
     support_mask: np.ndarray | None = None,
 ) -> LobeSegmentationPrediction:
-    """Convert foreground/boundary probabilities into countable lobe components."""
-
+    """Преобразует вероятности переднего плана и границ в подсчитываемые компоненты долей."""
     foreground_mask = foreground_probability >= foreground_threshold
     boundary_mask = boundary_probability >= boundary_threshold
     if support_mask is not None:

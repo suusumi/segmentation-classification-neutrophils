@@ -1,2 +1,2 @@
-"""Core application configuration and path helpers."""
+"""Базовая конфигурация приложения и утилиты путей."""
 

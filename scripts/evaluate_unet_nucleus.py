@@ -1,4 +1,4 @@
-"""Evaluate trained U-Net nucleus segmentation weights."""
+"""Оценивает обученные веса U-Net для сегментации ядра."""
 
 # ruff: noqa: E402
 
@@ -33,8 +33,7 @@ DEFAULT_OUTPUT_DIR = PATHS.outputs / "unet_nucleus_eval"
 
 @dataclass(frozen=True)
 class EvalSample:
-    """One evaluation sample."""
-
+    """Один оценочный образец."""
     image_id: str
     image_path: Path
     mask_path: Path
@@ -42,7 +41,7 @@ class EvalSample:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Evaluate U-Net nucleus segmentation.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -55,8 +54,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _resolve_path(path_value: str, base_dir: Path) -> Path:
-    """Resolve absolute or project-relative paths."""
-
+    """Разрешает абсолютные пути или пути относительно проекта."""
     path = Path(path_value)
     if path.is_absolute():
         return path.resolve()
@@ -68,8 +66,7 @@ def _resolve_path(path_value: str, base_dir: Path) -> Path:
 
 
 def load_samples(manifest_path: Path, split: str) -> list[EvalSample]:
-    """Load evaluation samples from the curated manifest."""
-
+    """Загружает оценочные образцы из курируемого манифеста."""
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Manifest does not exist: {manifest_path}")
 
@@ -94,20 +91,17 @@ def load_samples(manifest_path: Path, split: str) -> list[EvalSample]:
 
 
 def load_rgb_image(path: Path) -> np.ndarray:
-    """Load an RGB image array."""
-
+    """Загружает массив RGB-изображения."""
     return np.asarray(Image.open(path).convert("RGB"))
 
 
 def load_binary_mask(path: Path) -> np.ndarray:
-    """Load a binary mask array."""
-
+    """Загружает массив бинарной маски."""
     return np.asarray(Image.open(path).convert("L")) > 0
 
 
 def dice_score(prediction: np.ndarray, target: np.ndarray, eps: float = 1e-7) -> float:
-    """Compute Dice score."""
-
+    """Вычисляет метрику Dice."""
     prediction = prediction.astype(bool)
     target = target.astype(bool)
     intersection = np.logical_and(prediction, target).sum()
@@ -116,8 +110,7 @@ def dice_score(prediction: np.ndarray, target: np.ndarray, eps: float = 1e-7) ->
 
 
 def iou_score(prediction: np.ndarray, target: np.ndarray, eps: float = 1e-7) -> float:
-    """Compute intersection over union."""
-
+    """Вычисляет пересечение по объединению."""
     prediction = prediction.astype(bool)
     target = target.astype(bool)
     intersection = np.logical_and(prediction, target).sum()
@@ -131,8 +124,7 @@ def save_comparison_overlay(
     prediction_mask: np.ndarray,
     path: Path,
 ) -> Path:
-    """Save a color overlay: green=true positive, red=miss, blue=false positive."""
-
+    """Сохраняет цветное наложение: зеленый - истинное срабатывание, красный - пропуск, синий - ложное срабатывание."""
     path.parent.mkdir(parents=True, exist_ok=True)
     overlay = rgb_image.copy().astype(np.float32)
     target = target_mask.astype(bool)
@@ -152,8 +144,7 @@ def save_comparison_overlay(
 
 
 def summarize_metrics(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    """Summarize per-sample metrics."""
-
+    """Формирует сводку метрик по образцам."""
     dice_values = np.asarray([row["dice"] for row in rows], dtype=np.float32)
     iou_values = np.asarray([row["iou"] for row in rows], dtype=np.float32)
     return {
@@ -175,8 +166,7 @@ def evaluate(
     segmenter: UNetNucleusSegmenter,
     output_dir: Path,
 ) -> dict[str, Any]:
-    """Run evaluation and save artifacts."""
-
+    """Запускает оценку и сохраняет артефакты."""
     predictions_dir = output_dir / "predictions"
     overlays_dir = output_dir / "overlays"
     comparisons_dir = output_dir / "comparisons"
@@ -228,7 +218,7 @@ def evaluate(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     samples = load_samples(args.manifest, split=args.split)

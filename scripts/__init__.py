@@ -1,1 +1,1 @@
-"""Project maintenance scripts."""
+"""Скрипты сопровождения проекта."""

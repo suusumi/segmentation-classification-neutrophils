@@ -1,4 +1,4 @@
-"""Train a YOLO segmentation model for nucleus lobe instances."""
+"""Обучает модель сегментации YOLO для экземпляров долей ядра."""
 
 # ruff: noqa: E402
 
@@ -22,7 +22,7 @@ DEFAULT_WEIGHTS_PATH = PATHS.models / "yolo_lobes_seg.pt"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Train YOLO-seg on nucleus lobe instances.")
     parser.add_argument("--data-yaml", type=Path, default=DEFAULT_DATA_YAML)
@@ -45,8 +45,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _load_yolo_class() -> Any:
-    """Import Ultralytics lazily so the rest of the project can run without it."""
-
+    """Лениво импортирует Ultralytics, чтобы остальная часть проекта могла работать без него."""
     try:
         from ultralytics import YOLO
     except ImportError as error:
@@ -58,7 +57,7 @@ def _load_yolo_class() -> Any:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     if not args.data_yaml.is_file():

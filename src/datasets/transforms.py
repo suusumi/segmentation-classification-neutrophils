@@ -1,4 +1,4 @@
-"""Albumentations transforms for blood cell image classification."""
+"""Преобразования Albumentations для классификации изображений клеток крови."""
 
 from __future__ import annotations
 
@@ -12,15 +12,14 @@ IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
 def get_train_transforms(image_size: int = 224) -> A.Compose:
-    """Build training transforms for blood cell classification.
+    """Создает обучающие преобразования для классификации клеток крови.
 
     Args:
-        image_size: Target square size for resizing.
+        image_size: Целевой размер квадрата для изменения размера.
 
     Returns:
-        Albumentations compose object producing PyTorch tensors.
+        Объект compose Albumentations, создающий тензоры PyTorch.
     """
-
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -42,15 +41,14 @@ def get_train_transforms(image_size: int = 224) -> A.Compose:
 
 
 def get_val_transforms(image_size: int = 224) -> A.Compose:
-    """Build validation transforms for blood cell classification.
+    """Создает валидационные преобразования для классификации клеток крови.
 
     Args:
-        image_size: Target square size for resizing.
+        image_size: Целевой размер квадрата для изменения размера.
 
     Returns:
-        Albumentations compose object producing PyTorch tensors.
+        Объект compose Albumentations, создающий тензоры PyTorch.
     """
-
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -61,12 +59,11 @@ def get_val_transforms(image_size: int = 224) -> A.Compose:
 
 
 def get_segmentation_train_transforms(image_size: int = 256) -> A.Compose:
-    """Build training transforms for nucleus segmentation.
+    """Создает обучающие преобразования для сегментации ядра.
 
-    Geometric transforms are applied to the image and mask together. Color and
-    noise transforms are applied only to the image by albumentations.
+    Геометрические преобразования применяются к изображению и маске вместе. Цветовые
+    преобразования и шум применяются albumentations только к изображению.
     """
-
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -101,8 +98,7 @@ def get_segmentation_train_transforms(image_size: int = 256) -> A.Compose:
 
 
 def get_segmentation_val_transforms(image_size: int = 256) -> A.Compose:
-    """Build validation transforms for nucleus segmentation."""
-
+    """Создает валидационные преобразования для сегментации ядра."""
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -113,8 +109,7 @@ def get_segmentation_val_transforms(image_size: int = 256) -> A.Compose:
 
 
 def get_lobe_count_train_transforms(image_size: int = 256) -> A.Compose:
-    """Build online transforms for nucleus lobe count training."""
-
+    """Создает онлайн-преобразования для обучения подсчету долей ядра."""
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -150,8 +145,7 @@ def get_lobe_count_train_transforms(image_size: int = 256) -> A.Compose:
 
 
 def get_lobe_count_val_transforms(image_size: int = 256) -> A.Compose:
-    """Build validation transforms for nucleus lobe count baselines."""
-
+    """Создает валидационные преобразования для базовых моделей подсчета долей ядра."""
     return A.Compose(
         [
             A.Resize(height=image_size, width=image_size),
@@ -163,12 +157,10 @@ def get_lobe_count_val_transforms(image_size: int = 256) -> A.Compose:
 
 
 def get_lobe_segmentation_train_transforms(image_size: int = 256) -> A.Compose:
-    """Build online transforms for lobe foreground/boundary segmentation."""
-
+    """Создает онлайн-преобразования для сегментации переднего плана и границ долей."""
     return get_lobe_count_train_transforms(image_size=image_size)
 
 
 def get_lobe_segmentation_val_transforms(image_size: int = 256) -> A.Compose:
-    """Build validation transforms for lobe foreground/boundary segmentation."""
-
+    """Создает валидационные преобразования для сегментации переднего плана и границ долей."""
     return get_lobe_count_val_transforms(image_size=image_size)

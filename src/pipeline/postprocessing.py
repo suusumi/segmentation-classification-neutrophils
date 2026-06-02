@@ -1,4 +1,4 @@
-"""Postprocessing for raw nucleus masks."""
+"""Постобработка сырых масок ядра."""
 
 from __future__ import annotations
 
@@ -22,8 +22,7 @@ def _keep_primary_nucleus_cluster(
     max_centroid_distance_px: float,
     min_area_ratio: float,
 ) -> np.ndarray:
-    """Keep the main nucleus cluster and drop distant same-color artifacts."""
-
+    """Оставляет основной кластер ядра и удаляет удаленные одноцветные артефакты."""
     labeled = label(mask.astype(bool))
     regions = regionprops(labeled)
     if not regions:
@@ -54,8 +53,7 @@ def postprocess_mask(
     cluster_distance_fraction: float = DEFAULT_CLUSTER_DISTANCE_FRACTION,
     cluster_min_area_ratio: float = DEFAULT_CLUSTER_MIN_AREA_RATIO,
 ) -> np.ndarray:
-    """Clean a binary nucleus mask."""
-
+    """Очищает бинарную маску ядра."""
     binary = mask.astype(bool)
     cleaned = clear_border(binary, buffer_size=border_margin_px).astype(bool)
     cleaned = remove_small_objects(cleaned, max_size=min_object_size)

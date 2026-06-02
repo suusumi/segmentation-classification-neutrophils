@@ -1,4 +1,4 @@
-"""Datasets for nucleus lobe foreground and boundary segmentation."""
+"""Наборы данных для сегментации переднего плана и границ долей ядра."""
 
 from __future__ import annotations
 
@@ -30,20 +30,17 @@ def _sample_predicted_mask_path(
     predicted_mask_dir: Path,
     sample: NucleusLobeSample,
 ) -> Path:
-    """Return expected predicted mask path for a lobe sample."""
-
+    """Возвращает ожидаемый путь предсказанной маски для образца долей."""
     return predicted_mask_dir / sample.split / f"{sample.image_id}.png"
 
 
 def _image_to_tensor(image: np.ndarray) -> Tensor:
-    """Convert an RGB image array into a float tensor."""
-
+    """Преобразует массив RGB-изображения в float-тензор."""
     return torch.from_numpy(np.array(image, copy=True)).permute(2, 0, 1).float().div(255.0)
 
 
 def _mask_to_tensor(mask: np.ndarray | Tensor) -> Tensor:
-    """Convert a binary mask array or tensor into a 1xHxW float tensor."""
-
+    """Преобразует массив или тензор бинарной маски в float-тензор 1xHxW."""
     if isinstance(mask, np.ndarray):
         if mask.ndim == 3:
             mask = mask[:, :, 0]
@@ -58,8 +55,7 @@ def _mask_to_tensor(mask: np.ndarray | Tensor) -> Tensor:
 
 
 def _instance_mask_to_numpy(mask: np.ndarray | Tensor) -> np.ndarray:
-    """Convert an instance mask to a 2D numpy array."""
-
+    """Преобразует маску экземпляров в 2D-массив numpy."""
     if isinstance(mask, torch.Tensor):
         mask = mask.detach().cpu().numpy()
     if mask.ndim == 3:
@@ -72,8 +68,7 @@ def lobe_instance_mask_to_targets(
     boundary_radius: int = 1,
     boundary_gap_radius: int = 6,
 ) -> Tensor:
-    """Convert an instance mask into foreground and boundary targets."""
-
+    """Преобразует маску экземпляров в целевые маски переднего плана и границ."""
     instance_array = _instance_mask_to_numpy(instance_mask)
     foreground = instance_array > 0
     coverage = np.zeros(instance_array.shape, dtype=np.uint8)
@@ -99,8 +94,7 @@ def lobe_instance_mask_to_targets(
 
 
 class NucleusLobeSegmentationDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]):
-    """Dataset for lobe foreground/boundary segmentation."""
-
+    """Набор данных для сегментации переднего плана и границ долей."""
     def __init__(
         self,
         manifest_path: str | Path,
@@ -114,26 +108,25 @@ class NucleusLobeSegmentationDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]
         mask_noise_max_radius: int = 2,
         boundary_gap_radius: int = 6,
     ) -> None:
-        """Initialize the dataset.
+        """Инициализирует набор данных.
 
         Args:
-            manifest_path: Curated lobe manifest CSV.
-            split: Optional split filter.
-            transform: Optional albumentations transform accepting image and masks.
-            boundary_radius: Pixel radius used to widen boundary targets.
-            nucleus_mask_source: Which nucleus mask input to use: curated CVAT mask,
-                generated predicted mask, or a random mix.
-            predicted_mask_dir: Root directory with predicted masks stored as
+            manifest_path: CSV-манифест курируемых долей.
+            split: Необязательный фильтр разбиения.
+            transform: Необязательное преобразование albumentations, принимающее изображение и маски.
+            boundary_radius: Радиус в пикселях для расширения целевых границ.
+            nucleus_mask_source: Какой вход маски ядра использовать: курируемую маску CVAT,
+                сгенерированную предсказанную маску или случайную смесь.
+            predicted_mask_dir: Корневой каталог с предсказанными масками, сохраненными как
                 ``<split>/<image_id>.png``.
-            predicted_mask_probability: Probability of using a predicted mask when
-                ``nucleus_mask_source`` is ``mixed``.
-            mask_noise_probability: Probability of applying online morphology noise
-                to the chosen nucleus mask.
-            mask_noise_max_radius: Maximum morphology radius for mask noise.
-            boundary_gap_radius: Pixel radius used to find close lobe instances and
-                build separator targets between them.
+            predicted_mask_probability: Вероятность использования предсказанной маски, когда
+                ``nucleus_mask_source`` равен ``mixed``.
+            mask_noise_probability: Вероятность применения онлайн-морфологического шума
+                к выбранной маске ядра.
+            mask_noise_max_radius: Максимальный радиус морфологии для шума маски.
+            boundary_gap_radius: Радиус в пикселях для поиска близких экземпляров долей и
+                построения целевых разделителей между ними.
         """
-
         self.manifest_path = Path(manifest_path).resolve()
         self.samples: list[NucleusLobeSample] = load_lobe_manifest_samples(
             self.manifest_path,
@@ -155,13 +148,11 @@ class NucleusLobeSegmentationDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]
             raise ValueError("mask_noise_probability must be between 0 and 1.")
 
     def __len__(self) -> int:
-        """Return number of samples."""
-
+        """Возвращает количество образцов."""
         return len(self.samples)
 
     def __getitem__(self, index: int) -> tuple[Tensor, Tensor, Tensor, str]:
-        """Return 4-channel input, 2-channel target, raw count, and image id."""
-
+        """Возвращает 4-канальный вход, 2-канальную цель, исходное количество и id изображения."""
         sample = self.samples[index]
         with Image.open(sample.image_path) as image:
             rgb_image = np.asarray(image.convert("RGB"))
@@ -202,8 +193,7 @@ class NucleusLobeSegmentationDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]
         return input_tensor, target_tensor.float(), segment_count, sample.image_id
 
     def _choose_nucleus_mask_path(self, sample: NucleusLobeSample) -> Path:
-        """Choose CVAT or generated predicted nucleus mask for this sample."""
-
+        """Выбирает для этого образца маску ядра из CVAT или сгенерированную предсказанную маску."""
         if self.nucleus_mask_source == "cvat":
             return sample.nucleus_mask_path
         if self.predicted_mask_dir is None:
@@ -221,8 +211,7 @@ class NucleusLobeSegmentationDataset(Dataset[tuple[Tensor, Tensor, Tensor, str]]
         return sample.nucleus_mask_path
 
     def _maybe_add_mask_noise(self, nucleus_mask: np.ndarray | Tensor) -> np.ndarray | Tensor:
-        """Apply online morphology noise to a selected nucleus mask."""
-
+        """Применяет онлайн-морфологический шум к выбранной маске ядра."""
         if torch.rand(1).item() >= self.mask_noise_probability:
             return nucleus_mask
         if isinstance(nucleus_mask, torch.Tensor):

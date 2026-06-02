@@ -1,5 +1,4 @@
-"""Tests for nucleus segmentation dataset preparation and inference glue."""
-
+"""Тесты подготовки набора данных сегментации ядра и связки инференса."""
 from __future__ import annotations
 
 import csv

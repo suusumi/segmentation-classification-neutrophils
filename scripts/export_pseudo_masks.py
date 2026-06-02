@@ -1,4 +1,4 @@
-"""Generate pseudo-label nucleus masks for manual annotation."""
+"""Генерирует псевдометки масок ядра для ручной разметки."""
 
 # ruff: noqa: E402
 
@@ -27,8 +27,7 @@ DEFAULT_OUTPUT_DIR = PATHS.processed_data / "nucleus_segmentation" / "pseudo_lab
 
 @dataclass(frozen=True)
 class PseudoMaskRecord:
-    """Manifest row for one generated pseudo-label."""
-
+    """Строка манифеста для одной сгенерированной псевдометки."""
     image_id: str
     source_image_path: str
     image_path: str
@@ -39,8 +38,7 @@ class PseudoMaskRecord:
     needs_review: bool = True
 
     def to_row(self) -> dict[str, str]:
-        """Return a CSV-friendly row."""
-
+        """Возвращает строку, удобную для записи в CSV."""
         return {
             "image_id": self.image_id,
             "source_image_path": self.source_image_path,
@@ -54,7 +52,7 @@ class PseudoMaskRecord:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description=(
@@ -100,8 +98,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _is_image_file(path: Path) -> bool:
-    """Return True when path is a supported image file."""
-
+    """Возвращает True, когда путь указывает на поддерживаемый файл изображения."""
     return (
         path.is_file()
         and not path.name.startswith(".")
@@ -110,8 +107,7 @@ def _is_image_file(path: Path) -> bool:
 
 
 def collect_image_paths(input_dir: Path, limit: int | None = None) -> list[Path]:
-    """Collect image paths from a source directory."""
-
+    """Собирает пути изображений из исходного каталога."""
     if not input_dir.exists():
         raise FileNotFoundError(f"Input directory does not exist: {input_dir}")
     if not input_dir.is_dir():
@@ -128,8 +124,7 @@ def collect_image_paths(input_dir: Path, limit: int | None = None) -> list[Path]
 
 
 def _resolve_manifest_path(path_value: str) -> Path:
-    """Resolve a split CSV path value relative to the project root when needed."""
-
+    """При необходимости разрешает значение пути из CSV разбиения относительно корня проекта."""
     path = Path(path_value)
     if path.is_absolute():
         return path.resolve()
@@ -137,8 +132,7 @@ def _resolve_manifest_path(path_value: str) -> Path:
 
 
 def load_split_map(splits_dir: Path) -> dict[Path, str]:
-    """Load project split CSVs into a source-image-to-split map."""
-
+    """Загружает CSV-разбиения проекта в отображение исходных изображений на разбиения."""
     split_map: dict[Path, str] = {}
     for split_name in ("train", "val", "test"):
         split_path = splits_dir / f"{split_name}.csv"
@@ -155,8 +149,7 @@ def load_split_map(splits_dir: Path) -> dict[Path, str]:
 
 
 def _prepare_output_dirs(output_dir: Path) -> tuple[Path, Path, Path]:
-    """Create and return images, masks, and overlays directories."""
-
+    """Создает и возвращает каталоги изображений, масок и наложений."""
     images_dir = output_dir / "images"
     masks_dir = output_dir / "pseudo_masks"
     overlays_dir = output_dir / "overlays"
@@ -166,8 +159,7 @@ def _prepare_output_dirs(output_dir: Path) -> tuple[Path, Path, Path]:
 
 
 def _copy_source_image(source_path: Path, destination_path: Path, overwrite: bool) -> None:
-    """Copy a source image into the annotation dataset."""
-
+    """Копирует исходное изображение в набор данных разметки."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -181,8 +173,7 @@ def generate_pseudo_masks(
     overwrite: bool = False,
     save_overlays: bool = True,
 ) -> list[PseudoMaskRecord]:
-    """Generate pseudo-label masks and return manifest records."""
-
+    """Генерирует маски псевдометок и возвращает записи манифеста."""
     images_dir, masks_dir, overlays_dir = _prepare_output_dirs(output_dir)
     segmenter = ThresholdNucleusSegmenter()
     records: list[PseudoMaskRecord] = []
@@ -226,8 +217,7 @@ def generate_pseudo_masks(
 
 
 def save_manifest(records: list[PseudoMaskRecord], output_dir: Path) -> Path:
-    """Save manifest.csv for the generated pseudo-label dataset."""
-
+    """Сохраняет manifest.csv для сгенерированного набора псевдометок."""
     manifest_path = output_dir / "manifest.csv"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = list(PseudoMaskRecord("", "", "", "", "", "").to_row().keys())
@@ -240,7 +230,7 @@ def save_manifest(records: list[PseudoMaskRecord], output_dir: Path) -> Path:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     image_paths = collect_image_paths(args.input_dir, limit=args.limit)

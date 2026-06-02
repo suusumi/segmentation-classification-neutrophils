@@ -1,4 +1,4 @@
-"""Utilities for exporting curated nucleus lobe masks to YOLO segmentation format."""
+"""Утилиты экспорта курируемых масок долей ядра в формат сегментации YOLO."""
 
 from __future__ import annotations
 
@@ -21,8 +21,7 @@ YOLO_LOBE_CLASS_NAME = "nucleus_lobe"
 
 @dataclass(frozen=True)
 class YoloLobeExportRow:
-    """One exported YOLO segmentation sample."""
-
+    """Один экспортированный образец сегментации YOLO."""
     image_id: str
     split: str
     source_image_path: Path
@@ -32,8 +31,7 @@ class YoloLobeExportRow:
     exported_polygon_count: int
 
     def to_row(self) -> dict[str, str | int]:
-        """Return a CSV row with project-relative paths."""
-
+        """Возвращает строку CSV с путями относительно проекта."""
         return {
             "image_id": self.image_id,
             "split": self.split,
@@ -46,8 +44,7 @@ class YoloLobeExportRow:
 
 
 def polygon_area_xy(points: list[tuple[float, float]]) -> float:
-    """Return polygon area for ``(x, y)`` points using the shoelace formula."""
-
+    """Возвращает площадь полигона для точек ``(x, y)`` по формуле шнуровки."""
     if len(points) < 3:
         return 0.0
     xs = np.asarray([point[0] for point in points], dtype=np.float64)
@@ -60,8 +57,7 @@ def _simplified_contour_to_xy_points(
     mask_shape: tuple[int, int],
     tolerance: float,
 ) -> list[tuple[float, float]]:
-    """Convert a padded skimage contour into image-space ``(x, y)`` points."""
-
+    """Преобразует дополненный контур skimage в точки ``(x, y)`` в координатах изображения."""
     simplified = approximate_polygon(contour, tolerance=tolerance)
     points: list[tuple[float, float]] = []
     height, width = mask_shape
@@ -81,8 +77,7 @@ def binary_mask_to_largest_polygon(
     tolerance: float = 2.0,
     min_area_px: float = 12.0,
 ) -> list[tuple[float, float]] | None:
-    """Convert one object mask into its largest polygon contour."""
-
+    """Преобразует одну маску объекта в ее наибольший полигональный контур."""
     if mask.ndim != 2:
         raise ValueError("Object mask must be a 2D array.")
     if not np.any(mask):
@@ -109,8 +104,7 @@ def normalize_polygon_for_yolo(
     image_width: int,
     image_height: int,
 ) -> list[float]:
-    """Normalize image-space polygon points into YOLO segmentation coordinates."""
-
+    """Нормализует точки полигона в координатах изображения в координаты сегментации YOLO."""
     if image_width <= 0 or image_height <= 0:
         raise ValueError("Image width and height must be positive.")
     values: list[float] = []
@@ -127,8 +121,7 @@ def instance_mask_to_yolo_lines(
     tolerance: float = 2.0,
     min_area_px: float = 12.0,
 ) -> list[str]:
-    """Convert a lobe instance mask into YOLO segmentation label lines."""
-
+    """Преобразует маску экземпляров долей в строки меток сегментации YOLO."""
     if instance_mask.ndim == 3:
         instance_mask = instance_mask[:, :, 0]
     lines: list[str] = []
@@ -153,8 +146,7 @@ def instance_mask_to_yolo_lines(
 
 
 def _copy_image(source: Path, destination: Path, overwrite: bool) -> None:
-    """Copy one image into the YOLO dataset tree."""
-
+    """Копирует одно изображение в дерево набора данных YOLO."""
     if destination.exists() and not overwrite:
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -162,8 +154,7 @@ def _copy_image(source: Path, destination: Path, overwrite: bool) -> None:
 
 
 def _write_label(lines: list[str], destination: Path, overwrite: bool) -> None:
-    """Write one YOLO label file."""
-
+    """Записывает один файл меток YOLO."""
     if destination.exists() and not overwrite:
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -171,8 +162,7 @@ def _write_label(lines: list[str], destination: Path, overwrite: bool) -> None:
 
 
 def _write_export_manifest(rows: list[YoloLobeExportRow], path: Path) -> None:
-    """Write a manifest for the exported YOLO dataset."""
-
+    """Записывает манифест для экспортированного набора данных YOLO."""
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
         "image_id",
@@ -191,8 +181,7 @@ def _write_export_manifest(rows: list[YoloLobeExportRow], path: Path) -> None:
 
 
 def write_yolo_data_yaml(output_dir: Path, class_name: str = YOLO_LOBE_CLASS_NAME) -> Path:
-    """Write Ultralytics dataset YAML."""
-
+    """Записывает YAML набора данных Ultralytics."""
     data = {
         "path": output_dir.resolve().as_posix(),
         "train": "images/train",
@@ -213,8 +202,7 @@ def prepare_yolo_lobe_dataset(
     min_area_px: float = 12.0,
     overwrite: bool = False,
 ) -> list[YoloLobeExportRow]:
-    """Export curated lobe masks into an Ultralytics YOLO segmentation dataset."""
-
+    """Экспортирует курируемые маски долей в набор данных сегментации Ultralytics YOLO."""
     output_path = Path(output_dir).resolve()
     samples = load_lobe_manifest_samples(manifest_path=manifest_path)
     rows: list[YoloLobeExportRow] = []
@@ -241,8 +229,7 @@ def _export_sample(
     min_area_px: float,
     overwrite: bool,
 ) -> YoloLobeExportRow:
-    """Export one curated lobe sample."""
-
+    """Экспортирует один курируемый образец долей."""
     with Image.open(sample.image_path) as image:
         image_width, image_height = image.size
     with Image.open(sample.lobe_instance_mask_path) as mask_image:
@@ -272,8 +259,7 @@ def _export_sample(
 
 
 def project_relative_or_absolute(path: Path) -> str:
-    """Return a readable path for CLI output."""
-
+    """Возвращает читаемый путь для вывода CLI."""
     try:
         return to_project_relative_str(path)
     except ValueError:

@@ -1,4 +1,4 @@
-"""Application settings."""
+"""Настройки приложения."""
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ from src.core.paths import PATHS, project_path
 
 
 def _env_path(name: str, default: Path) -> Path:
-    """Read a path setting from the environment."""
-
+    """Читает настройку пути из окружения."""
     value = os.getenv(name)
     if not value:
         return default
@@ -20,8 +19,7 @@ def _env_path(name: str, default: Path) -> Path:
 
 
 def _env_str(name: str, default: str) -> str:
-    """Read a normalized string setting from the environment."""
-
+    """Читает нормализованную строковую настройку из окружения."""
     value = os.getenv(name)
     if value is None:
         return default
@@ -30,8 +28,7 @@ def _env_str(name: str, default: str) -> str:
 
 
 def _env_float(name: str, default: float) -> float:
-    """Read a float setting from the environment."""
-
+    """Читает настройку с плавающей точкой из окружения."""
     value = os.getenv(name)
     if value is None:
         return default
@@ -39,8 +36,7 @@ def _env_float(name: str, default: float) -> float:
 
 
 def _env_int(name: str, default: int) -> int:
-    """Read an integer setting from the environment."""
-
+    """Читает целочисленную настройку из окружения."""
     value = os.getenv(name)
     if value is None:
         return default
@@ -49,8 +45,7 @@ def _env_int(name: str, default: int) -> int:
 
 @dataclass(frozen=True)
 class AppSettings:
-    """Runtime settings for API and pipeline components."""
-
+    """Настройки времени выполнения для компонентов API и пайплайна."""
     app_name: str = "Neutrophil Analysis"
     api_version: str = "0.1.0"
     max_upload_size_mb: int = 20

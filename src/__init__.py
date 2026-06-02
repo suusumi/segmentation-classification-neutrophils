@@ -1,4 +1,4 @@
-"""Top-level package for the blood neutrophil project."""
+"""Верхнеуровневый пакет проекта анализа нейтрофилов крови."""
 
 __all__ = ["__version__"]
 

@@ -1,4 +1,4 @@
-"""Pydantic API schemas."""
+"""Схемы API на Pydantic."""
 
 from __future__ import annotations
 
@@ -8,23 +8,20 @@ from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
-    """Health endpoint response."""
-
+    """Ответ эндпоинта проверки состояния."""
     status: str = "ok"
     service: str
     version: str
 
 
 class ErrorResponse(BaseModel):
-    """Consistent error payload."""
-
+    """Единообразная полезная нагрузка ошибки."""
     error: str
     message: str
 
 
 class AnalysisResponse(BaseModel):
-    """Analysis endpoint response."""
-
+    """Ответ эндпоинта анализа."""
     analysis_id: str
     status: str
     input_filename: str

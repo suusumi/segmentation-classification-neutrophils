@@ -1,4 +1,4 @@
-"""Shared utility helpers for configuration, logging, seeding, and I/O."""
+"""Общие утилиты для конфигурации, логирования, инициализации случайности и ввода-вывода."""
 
 from .config import load_yaml_config
 from .io import ensure_dir, ensure_dirs, read_json, write_json

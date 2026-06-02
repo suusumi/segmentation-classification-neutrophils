@@ -1,5 +1,4 @@
-"""End-to-end neutrophil image analysis pipeline."""
-
+"""Сквозной пайплайн анализа изображений нейтрофилов."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -40,8 +39,7 @@ from src.utils.logger import get_logger
 
 
 def _mask_summary(mask: np.ndarray) -> tuple[int, float]:
-    """Return foreground pixel count and fraction for compact logging."""
-
+    """Возвращает количество и долю пикселей переднего плана для компактного логирования."""
     foreground_px = int(mask.astype(bool).sum())
     total_px = int(mask.size)
     foreground_fraction = float(foreground_px / total_px) if total_px else 0.0
@@ -49,8 +47,7 @@ def _mask_summary(mask: np.ndarray) -> tuple[int, float]:
 
 
 def _load_nucleus_mask(mask_path: Path, height: int, width: int) -> np.ndarray:
-    """Load a binary nucleus mask and resize with nearest-neighbor if needed."""
-
+    """Загружает бинарную маску ядра и при необходимости меняет размер методом ближайшего соседа."""
     with Image.open(mask_path) as mask_image:
         mask = mask_image.convert("L")
         if mask.size != (width, height):
@@ -59,8 +56,7 @@ def _load_nucleus_mask(mask_path: Path, height: int, width: int) -> np.ndarray:
 
 
 class NeutrophilAnalysisPipeline:
-    """Pipeline for single-neutrophil images."""
-
+    """Пайплайн для изображений одиночных нейтрофилов."""
     version = "0.2.0"
 
     def __init__(
@@ -122,8 +118,7 @@ class NeutrophilAnalysisPipeline:
         output_dir: Path | None = None,
         input_filename: str | None = None,
     ) -> AnalysisResult:
-        """Run the complete analysis pipeline and write artifacts."""
-
+        """Запускает полный пайплайн анализа и записывает артефакты."""
         return self._run(
             analysis_id=analysis_id,
             image_path=image_path,
@@ -141,8 +136,7 @@ class NeutrophilAnalysisPipeline:
         output_dir: Path | None = None,
         input_filename: str | None = None,
     ) -> AnalysisResult:
-        """Run lobe counting with a provided nucleus mask."""
-
+        """Запускает подсчет долей с переданной маской ядра."""
         return self._run(
             analysis_id=analysis_id,
             image_path=image_path,
@@ -161,8 +155,7 @@ class NeutrophilAnalysisPipeline:
         nucleus_mask_path: Path | None,
         segmenter_label: str | None,
     ) -> AnalysisResult:
-        """Run the complete analysis pipeline and write artifacts."""
-
+        """Запускает полный пайплайн анализа и записывает артефакты."""
         analysis_dir = output_dir or PATHS.analyses / analysis_id
         artifacts_dir = analysis_dir / "artifacts"
         reports_dir = analysis_dir / "reports"

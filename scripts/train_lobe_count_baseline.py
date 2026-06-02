@@ -1,4 +1,4 @@
-"""Train a simple nucleus lobe count baseline."""
+"""Обучает простую базовую модель подсчета долей ядра."""
 
 # ruff: noqa: E402
 
@@ -38,7 +38,7 @@ DEFAULT_WEIGHTS_PATH = PATHS.models / "lobe_count_baseline.pt"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Train a nucleus lobe count classifier.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -62,8 +62,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_name: str) -> torch.device:
-    """Resolve a CLI device name into a torch device."""
-
+    """Преобразует имя устройства из CLI в устройство torch."""
     if device_name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_name)
@@ -73,8 +72,7 @@ def build_class_weights(
     dataset: NucleusLobeCountDataset,
     device: torch.device,
 ) -> torch.Tensor:
-    """Build inverse-frequency class weights from the training split."""
-
+    """Строит веса классов, обратные частотам, по обучающему разбиению."""
     counts_by_index = torch.zeros(len(dataset.count_values), dtype=torch.float32)
     for sample in dataset.samples:
         counts_by_index[dataset.count_to_index[sample.segment_count]] += 1
@@ -87,8 +85,7 @@ def build_class_weights(
 
 
 def _counts_from_logits(logits: torch.Tensor, count_values: list[int]) -> list[int]:
-    """Convert model logits into raw segment counts."""
-
+    """Преобразует логиты модели в исходные количества сегментов."""
     predicted_indexes = logits.argmax(dim=1).detach().cpu().tolist()
     return [count_values[int(index)] for index in predicted_indexes]
 
@@ -100,8 +97,7 @@ def train_one_epoch(
     optimizer: torch.optim.Optimizer,
     device: torch.device,
 ) -> float:
-    """Train for one epoch and return mean loss."""
-
+    """Обучает одну эпоху и возвращает среднюю ошибку."""
     model.train()
     total_loss = 0.0
     sample_count = 0
@@ -131,8 +127,7 @@ def evaluate(
     device: torch.device,
     hypersegmentation_threshold: int,
 ) -> dict[str, Any]:
-    """Evaluate the model and return loss plus count metrics."""
-
+    """Оценивает модель и возвращает ошибку вместе с метриками подсчета."""
     model.eval()
     total_loss = 0.0
     sample_count = 0
@@ -170,8 +165,7 @@ def _checkpoint_payload(
     class_values: list[int],
     history: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Build a checkpoint payload for lobe count inference."""
-
+    """Создает полезную нагрузку чекпоинта для инференса подсчета долей."""
     return {
         "model_state_dict": model.state_dict(),
         "epoch": epoch,
@@ -200,8 +194,7 @@ def save_checkpoint(
     class_values: list[int],
     history: list[dict[str, Any]],
 ) -> None:
-    """Save model weights and a JSON sidecar."""
-
+    """Сохраняет веса модели и сопутствующий JSON."""
     args.weights_path.parent.mkdir(parents=True, exist_ok=True)
     payload = _checkpoint_payload(
         model=model,
@@ -225,7 +218,7 @@ def save_checkpoint(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     set_seed(args.seed, deterministic=True)

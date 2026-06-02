@@ -56,7 +56,7 @@ python scripts/export_pseudo_masks.py --no-overlays
 
 ## Как проверять результат
 
-Открой несколько файлов из:
+Открыть несколько файлов из:
 
 ```text
 data/processed/nucleus_segmentation/pseudo_labels/overlays/
@@ -66,9 +66,9 @@ data/processed/nucleus_segmentation/pseudo_labels/overlays/
 
 Если видны ошибки, это нормально: pseudo-mask — не ground truth. Ее задача — ускорить ручную разметку, а не заменить ее.
 
-## Дальше: ручная разметка
+## Ручная разметка
 
-Рекомендуемый инструмент — CVAT.
+Используемый инструмент — CVAT.
 
 Минимальный workflow:
 
@@ -78,7 +78,6 @@ data/processed/nucleus_segmentation/pseudo_labels/overlays/
 3. Исправить границы ядра
 4. При необходимости отдельно разметить доли ядра
 5. Экспортировать проверенные маски
-6. Конвертировать экспорт в обучающий датасет для U-Net
 ```
 
 Для U-Net первого этапа нужна бинарная маска:
@@ -97,15 +96,7 @@ image -> nucleus mask
 ...
 ```
 
-Эти две задачи связаны, но это разные типы ground truth.
-
 ## CVAT batch
-
-Подробная инструкция для CVAT лежит в:
-
-```text
-docs/cvat-workflow.md
-```
 
 Подготовить первую партию на 200 изображений:
 

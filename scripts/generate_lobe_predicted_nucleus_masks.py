@@ -1,4 +1,4 @@
-"""Generate first-stage U-Net nucleus masks for the curated lobe dataset."""
+"""Генерирует маски ядра первой стадии U-Net для курируемого набора долей."""
 
 # ruff: noqa: E402
 
@@ -28,7 +28,7 @@ DEFAULT_WEIGHTS_PATH = PATHS.models / "unet_nucleus.pt"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Generate predicted nucleus masks for lobe model training."
@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     samples = load_lobe_manifest_samples(args.manifest, split=args.split)

@@ -1,4 +1,4 @@
-"""Logging helpers for CLI and batch workflows."""
+"""Утилиты логирования для CLI и пакетных сценариев."""
 
 from __future__ import annotations
 
@@ -11,22 +11,21 @@ def get_logger(
     log_file: str | Path | None = None,
     level: int = logging.INFO,
 ) -> logging.Logger:
-    """Create or retrieve a configured logger.
+    """Создает или возвращает настроенный логгер.
 
-    The logger writes to the console by default and can optionally write to
-    a log file. Repeated calls with the same logger name reuse the existing
-    handlers to avoid duplicate log lines.
+    По умолчанию логгер пишет в консоль и при необходимости может писать
+    в файл журнала. Повторные вызовы с тем же именем логгера переиспользуют
+    существующие обработчики, чтобы избежать дублирования строк журнала.
 
     Args:
-        name: Logger name, typically ``__name__`` or an application label.
-        log_file: Optional path to a log file. Parent directories are created
-            automatically if needed.
-        level: Logging level applied to the logger and its handlers.
+        name: Имя логгера, обычно ``__name__`` или метка приложения.
+        log_file: Необязательный путь к файлу журнала. Родительские каталоги
+            создаются автоматически при необходимости.
+        level: Уровень логирования, применяемый к логгеру и его обработчикам.
 
     Returns:
-        A configured ``logging.Logger`` instance.
+        Настроенный экземпляр ``logging.Logger``.
     """
-
     logger = logging.getLogger(name)
     logger.setLevel(level)
 

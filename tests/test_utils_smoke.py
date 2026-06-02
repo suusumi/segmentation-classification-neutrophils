@@ -1,4 +1,4 @@
-"""Smoke test for the project utility modules."""
+"""Smoke-тест служебных модулей проекта."""
 
 from __future__ import annotations
 
@@ -12,8 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 def main() -> None:
-    """Run a basic end-to-end check of config, logging, JSON, and seeding."""
-
+    """Запускает базовую сквозную проверку конфигурации, логирования, JSON и seed."""
     from src.utils.config import load_yaml_config
     from src.utils.io import ensure_dir, read_json, write_json
     from src.utils.logger import get_logger
@@ -51,7 +50,7 @@ def main() -> None:
     log_text = log_path.read_text(encoding="utf-8")
     assert "Smoke test completed successfully." in log_text
 
-    # Validate the generated JSON with the standard library as a second check.
+    # Дополнительно проверяем сгенерированный JSON стандартной библиотекой.
     raw_json = json.loads(json_path.read_text(encoding="utf-8"))
     assert raw_json["experiment"] == "smoke-test"
 

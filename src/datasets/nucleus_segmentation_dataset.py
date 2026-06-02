@@ -1,4 +1,4 @@
-"""Datasets for binary neutrophil nucleus segmentation."""
+"""Наборы данных для бинарной сегментации ядра нейтрофила."""
 
 from __future__ import annotations
 
@@ -20,8 +20,7 @@ SegmentationTransform = Callable[..., dict[str, Any]]
 
 @dataclass(frozen=True)
 class NucleusSegmentationSample:
-    """One image/mask training pair."""
-
+    """Одна обучающая пара изображение/маска."""
     image_id: str
     image_path: Path
     mask_path: Path
@@ -29,8 +28,7 @@ class NucleusSegmentationSample:
 
 
 def _resolve_path(path_value: str, base_dir: Path) -> Path:
-    """Resolve a path from a manifest row."""
-
+    """Разрешает путь из строки манифеста."""
     path = Path(path_value)
     if path.is_absolute():
         return path.resolve()
@@ -45,8 +43,7 @@ def _load_manifest_samples(
     manifest_path: Path,
     split: str | None,
 ) -> list[NucleusSegmentationSample]:
-    """Load image/mask samples from a curated manifest CSV."""
-
+    """Загружает образцы изображение/маска из курируемого CSV-манифеста."""
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Manifest does not exist: {manifest_path}")
 
@@ -89,14 +86,12 @@ def _load_manifest_samples(
 
 
 def _image_to_tensor(image: np.ndarray) -> Tensor:
-    """Convert an RGB image array into a float tensor."""
-
+    """Преобразует массив RGB-изображения в float-тензор."""
     return torch.from_numpy(image).permute(2, 0, 1).float().div(255.0)
 
 
 def _mask_to_tensor(mask: np.ndarray) -> Tensor:
-    """Convert a binary mask array into a 1xHxW float tensor."""
-
+    """Преобразует массив бинарной маски в float-тензор 1xHxW."""
     if mask.ndim == 3:
         mask = mask[:, :, 0]
     binary_mask = (mask > 0).astype(np.float32)
@@ -104,34 +99,30 @@ def _mask_to_tensor(mask: np.ndarray) -> Tensor:
 
 
 class NucleusSegmentationDataset(Dataset[tuple[Tensor, Tensor, str]]):
-    """PyTorch dataset for binary nucleus segmentation."""
-
+    """Набор данных PyTorch для бинарной сегментации ядра."""
     def __init__(
         self,
         manifest_path: str | Path,
         split: str | None = None,
         transform: SegmentationTransform | None = None,
     ) -> None:
-        """Initialize the dataset.
+        """Инициализирует набор данных.
 
         Args:
-            manifest_path: Curated dataset manifest with image_path/mask_path columns.
-            split: Optional split filter, for example ``train`` or ``val``.
-            transform: Optional albumentations transform accepting image and mask.
+            manifest_path: Манифест курируемого набора данных со столбцами image_path/mask_path.
+            split: Необязательный фильтр разбиения, например ``train`` или ``val``.
+            transform: Необязательное преобразование albumentations, принимающее изображение и маску.
         """
-
         self.manifest_path = Path(manifest_path).resolve()
         self.samples = _load_manifest_samples(self.manifest_path, split=split)
         self.transform = transform
 
     def __len__(self) -> int:
-        """Return number of samples."""
-
+        """Возвращает количество образцов."""
         return len(self.samples)
 
     def __getitem__(self, index: int) -> tuple[Tensor, Tensor, str]:
-        """Return image tensor, binary mask tensor, and image id."""
-
+        """Возвращает тензор изображения, тензор бинарной маски и id изображения."""
         sample = self.samples[index]
         with Image.open(sample.image_path) as image:
             rgb_image = np.asarray(image.convert("RGB"))

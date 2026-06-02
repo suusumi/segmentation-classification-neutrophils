@@ -1,31 +1,31 @@
-"""Domain exceptions used by the API and pipeline."""
+"""Доменные исключения, используемые API и пайплайном."""
 
 from __future__ import annotations
 
 
 class AnalysisError(Exception):
-    """Base class for expected analysis failures."""
+    """Базовый класс для ожидаемых ошибок анализа."""
 
     status_code = 500
     error_code = "analysis_error"
 
 
 class UploadValidationError(AnalysisError):
-    """Raised when an uploaded file cannot be accepted."""
+    """Возникает, когда загруженный файл нельзя принять."""
 
     status_code = 400
     error_code = "invalid_upload"
 
 
 class PipelineError(AnalysisError):
-    """Raised when the analysis pipeline fails."""
+    """Возникает при сбое пайплайна анализа."""
 
     status_code = 500
     error_code = "pipeline_error"
 
 
 class AnalysisNotFoundError(AnalysisError):
-    """Raised when an analysis id is unknown."""
+    """Возникает, когда идентификатор анализа неизвестен."""
 
     status_code = 404
     error_code = "analysis_not_found"

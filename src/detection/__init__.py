@@ -1,4 +1,4 @@
-"""Future full-smear neutrophil detection adapters."""
+"""Будущие адаптеры обнаружения нейтрофилов на полном мазке."""
 
 from .base import CellDetection, NeutrophilDetector
 

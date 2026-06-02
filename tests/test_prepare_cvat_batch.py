@@ -1,4 +1,4 @@
-"""Tests for CVAT batch preparation."""
+"""Тесты подготовки пакета CVAT."""
 
 from __future__ import annotations
 

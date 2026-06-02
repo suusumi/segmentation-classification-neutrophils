@@ -1,2 +1,2 @@
-"""Application service layer."""
+"""Сервисный слой приложения."""
 

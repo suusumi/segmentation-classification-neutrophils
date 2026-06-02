@@ -1,4 +1,4 @@
-"""Train U-Net for binary neutrophil nucleus segmentation."""
+"""Обучает U-Net для бинарной сегментации ядра нейтрофила."""
 
 # ruff: noqa: E402
 
@@ -35,7 +35,7 @@ DEFAULT_WEIGHTS_PATH = PATHS.models / "unet_nucleus.pt"
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(description="Train U-Net nucleus segmentation weights.")
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
@@ -57,8 +57,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_device(device_name: str) -> torch.device:
-    """Resolve a CLI device name into a torch device."""
-
+    """Преобразует имя устройства из CLI в устройство torch."""
     if device_name == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(device_name)
@@ -70,8 +69,7 @@ def dice_coefficient_from_logits(
     threshold: float = 0.5,
     eps: float = 1e-7,
 ) -> torch.Tensor:
-    """Compute batch mean Dice from raw logits."""
-
+    """Вычисляет средний Dice по батчу из сырых логитов."""
     probabilities = torch.sigmoid(logits)
     predictions = (probabilities > threshold).float()
     intersection = (predictions * targets).sum(dim=(1, 2, 3))
@@ -84,8 +82,7 @@ def soft_dice_loss(
     targets: torch.Tensor,
     eps: float = 1e-7,
 ) -> torch.Tensor:
-    """Differentiable Dice loss from raw logits."""
-
+    """Дифференцируемая Dice-loss из сырых логитов."""
     probabilities = torch.sigmoid(logits)
     intersection = (probabilities * targets).sum(dim=(1, 2, 3))
     denominator = probabilities.sum(dim=(1, 2, 3)) + targets.sum(dim=(1, 2, 3))
@@ -94,8 +91,7 @@ def soft_dice_loss(
 
 
 def segmentation_loss(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-    """Combine BCE and Dice losses for small foreground masks."""
-
+    """Объединяет BCE и Dice-loss для малых масок переднего плана."""
     bce = nn.functional.binary_cross_entropy_with_logits(logits, targets)
     return bce + soft_dice_loss(logits, targets)
 
@@ -106,8 +102,7 @@ def train_one_epoch(
     optimizer: torch.optim.Optimizer,
     device: torch.device,
 ) -> dict[str, float]:
-    """Train for one epoch."""
-
+    """Обучает одну эпоху."""
     model.train()
     total_loss = 0.0
     total_dice = 0.0
@@ -140,8 +135,7 @@ def evaluate(
     dataloader: DataLoader,
     device: torch.device,
 ) -> dict[str, float]:
-    """Evaluate model on a validation split."""
-
+    """Оценивает модель на валидационном разбиении."""
     model.eval()
     total_loss = 0.0
     total_dice = 0.0
@@ -171,8 +165,7 @@ def _checkpoint_payload(
     args: argparse.Namespace,
     history: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Build a checkpoint payload that can be loaded by inference."""
-
+    """Создает полезную нагрузку чекпоинта, которую можно загрузить для инференса."""
     return {
         "model_state_dict": model.state_dict(),
         "epoch": epoch,
@@ -198,8 +191,7 @@ def save_checkpoint(
     args: argparse.Namespace,
     history: list[dict[str, Any]],
 ) -> None:
-    """Save model weights and a sidecar metrics JSON."""
-
+    """Сохраняет веса модели и сопутствующий JSON с метриками."""
     args.weights_path.parent.mkdir(parents=True, exist_ok=True)
     payload = _checkpoint_payload(
         model=model,
@@ -221,7 +213,7 @@ def save_checkpoint(
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     set_seed(args.seed, deterministic=True)

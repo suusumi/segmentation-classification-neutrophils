@@ -1,4 +1,4 @@
-"""Tests for CVAT lobe instance export conversion."""
+"""Тесты преобразования экспорта экземпляров долей из CVAT."""
 
 from __future__ import annotations
 

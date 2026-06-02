@@ -1,4 +1,4 @@
-"""FastAPI application package."""
+"""Пакет приложения FastAPI."""
 
 from .app import app, create_app
 

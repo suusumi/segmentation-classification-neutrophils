@@ -1,4 +1,4 @@
-"""Tests for the single-image neutrophil analysis pipeline."""
+"""Тесты пайплайна анализа нейтрофила на одном изображении."""
 
 from __future__ import annotations
 
@@ -15,8 +15,7 @@ from src.pipeline.segment_counting import SegmentCountConfig, count_nucleus_segm
 
 
 def _create_synthetic_neutrophil(path: Path) -> None:
-    """Create a simple RGB image with a dark segmented nucleus."""
-
+    """Создает простое RGB-изображение с темным сегментированным ядром."""
     path.parent.mkdir(parents=True, exist_ok=True)
     image = Image.new("RGB", (128, 128), color=(235, 218, 215))
     draw = ImageDraw.Draw(image)

@@ -1,4 +1,4 @@
-"""Artifact writers for masks, overlays, and reports."""
+"""Запись артефактов: масок, наложений и отчетов."""
 
 from __future__ import annotations
 
@@ -13,8 +13,7 @@ from src.utils.io import write_json
 
 
 def _format_report_value(value: object) -> str:
-    """Format report values for Markdown tables."""
-
+    """Форматирует значения отчета для таблиц Markdown."""
     if value is None:
         return "не сформирован"
     if isinstance(value, float):
@@ -23,8 +22,7 @@ def _format_report_value(value: object) -> str:
 
 
 def _markdown_table(rows: list[tuple[str, object]]) -> list[str]:
-    """Build a two-column Markdown table."""
-
+    """Создает двухколоночную таблицу Markdown."""
     table = [
         "| Параметр | Значение |",
         "| --- | --- |",
@@ -34,8 +32,7 @@ def _markdown_table(rows: list[tuple[str, object]]) -> list[str]:
 
 
 def _classification_summary(result: AnalysisResult) -> str:
-    """Return a concise Russian explanation for the classification result."""
-
+    """Возвращает краткое русское объяснение результата классификации."""
     segments = result.features.nucleus_segments
     segment_word = _russian_segment_word(segments)
     if result.classification.label == "unknown":
@@ -46,8 +43,7 @@ def _classification_summary(result: AnalysisResult) -> str:
 
 
 def _russian_segment_word(count: int) -> str:
-    """Return the correct Russian plural form for a segment count."""
-
+    """Возвращает правильную русскую форму множественного числа для количества сегментов."""
     if count % 10 == 1 and count % 100 != 11:
         return "сегмент"
     if count % 10 in {2, 3, 4} and count % 100 not in {12, 13, 14}:
@@ -56,8 +52,7 @@ def _russian_segment_word(count: int) -> str:
 
 
 def _localized_status(status: str) -> str:
-    """Return a Russian label for a pipeline status."""
-
+    """Возвращает русскую метку для статуса пайплайна."""
     return {
         "completed": "завершен",
         "failed": "ошибка",
@@ -66,8 +61,7 @@ def _localized_status(status: str) -> str:
 
 
 def _localized_classification(label: str) -> str:
-    """Return a Russian label for a classification result."""
-
+    """Возвращает русскую метку для результата классификации."""
     return {
         "normal": "норма",
         "hypersegmentation": "гиперсегментация",
@@ -76,8 +70,7 @@ def _localized_classification(label: str) -> str:
 
 
 def save_mask(mask: np.ndarray, path: Path) -> Path:
-    """Save a binary mask as an 8-bit PNG."""
-
+    """Сохраняет бинарную маску как 8-битный PNG."""
     path.parent.mkdir(parents=True, exist_ok=True)
     image = Image.fromarray(mask.astype(np.uint8) * 255)
     image.save(path)
@@ -85,8 +78,7 @@ def save_mask(mask: np.ndarray, path: Path) -> Path:
 
 
 def save_overlay(rgb_image: np.ndarray, mask: np.ndarray, path: Path) -> Path:
-    """Save a transparent red mask overlay on the original RGB image."""
-
+    """Сохраняет прозрачное красное наложение маски на исходное RGB-изображение."""
     path.parent.mkdir(parents=True, exist_ok=True)
     base = Image.fromarray(rgb_image.astype(np.uint8)).convert("RGBA")
     overlay = np.zeros((*mask.shape, 4), dtype=np.uint8)
@@ -97,8 +89,7 @@ def save_overlay(rgb_image: np.ndarray, mask: np.ndarray, path: Path) -> Path:
 
 
 def save_labeled_mask(mask: np.ndarray, path: Path) -> Path:
-    """Save labeled components with a deterministic color palette."""
-
+    """Сохраняет размеченные компоненты с детерминированной цветовой палитрой."""
     path.parent.mkdir(parents=True, exist_ok=True)
     palette = np.asarray(
         [
@@ -124,8 +115,7 @@ def save_lobe_overlay(
     boundary_mask: np.ndarray,
     path: Path,
 ) -> Path:
-    """Save colored lobe components and white predicted boundaries over the image."""
-
+    """Сохраняет цветные компоненты долей и белые предсказанные границы поверх изображения."""
     path.parent.mkdir(parents=True, exist_ok=True)
     base = Image.fromarray(rgb_image.astype(np.uint8)).convert("RGBA")
     palette = np.asarray(
@@ -148,15 +138,13 @@ def save_lobe_overlay(
 
 
 def save_report_json(result: AnalysisResult, path: Path) -> Path:
-    """Persist the complete result as JSON."""
-
+    """Сохраняет полный результат как JSON."""
     write_json(path, result.to_dict())
     return path
 
 
 def save_report_markdown(result: AnalysisResult, path: Path) -> Path:
-    """Persist a compact human-readable report."""
-
+    """Сохраняет компактный человекочитаемый отчет."""
     path.parent.mkdir(parents=True, exist_ok=True)
     postprocessing_labels = {
         "segment_min_area_px": "Мин. площадь сегмента, px",
@@ -259,6 +247,5 @@ def save_report_markdown(result: AnalysisResult, path: Path) -> Path:
 
 
 def relative_artifact(path: Path) -> str:
-    """Return a project-relative artifact path."""
-
+    """Возвращает путь артефакта относительно проекта."""
     return to_project_relative_str(path)

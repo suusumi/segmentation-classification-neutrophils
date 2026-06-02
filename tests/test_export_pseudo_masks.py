@@ -1,4 +1,4 @@
-"""Tests for pseudo-mask export utilities."""
+"""Тесты утилит экспорта псевдомасок."""
 
 from __future__ import annotations
 

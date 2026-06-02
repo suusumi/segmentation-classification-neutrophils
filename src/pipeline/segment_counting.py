@@ -1,4 +1,4 @@
-"""Nucleus segment counting from binary masks."""
+"""Подсчет сегментов ядра по бинарным маскам."""
 
 from __future__ import annotations
 
@@ -14,8 +14,7 @@ from skimage.segmentation import watershed
 
 @dataclass(frozen=True)
 class SegmentCountConfig:
-    """Parameters controlling segment counting and artifact filtering."""
-
+    """Параметры, управляющие подсчетом сегментов и фильтрацией артефактов."""
     min_segment_area_px: int = 64
     min_peak_distance_px: int = 8
     watershed_compactness: float = 0.0
@@ -23,8 +22,7 @@ class SegmentCountConfig:
 
 @dataclass(frozen=True)
 class SegmentCountResult:
-    """Segment-counting output and summary statistics."""
-
+    """Результат подсчета сегментов и сводная статистика."""
     segment_count: int
     labeled_mask: np.ndarray
     segment_area_mean_px: float
@@ -43,8 +41,7 @@ def _empty_result(mask: np.ndarray) -> SegmentCountResult:
 
 
 def _filter_labeled_segments(labeled_mask: np.ndarray, min_area_px: int) -> np.ndarray:
-    """Remove tiny labeled regions and relabel the remaining components."""
-
+    """Удаляет крошечные размеченные области и заново размечает оставшиеся компоненты."""
     filtered = np.zeros(labeled_mask.shape, dtype=np.int32)
     next_label = 1
     for region in regionprops(labeled_mask):
@@ -56,8 +53,7 @@ def _filter_labeled_segments(labeled_mask: np.ndarray, min_area_px: int) -> np.n
 
 
 def _watershed_segments(mask: np.ndarray, config: SegmentCountConfig) -> np.ndarray:
-    """Split touching nucleus lobes using distance-transform watershed."""
-
+    """Разделяет соприкасающиеся доли ядра с помощью watershed по преобразованию расстояния."""
     distance = ndi.distance_transform_edt(mask)
     peak_coordinates = peak_local_max(
         distance,
@@ -85,8 +81,7 @@ def count_nucleus_segments(
     mask: np.ndarray,
     config: SegmentCountConfig | None = None,
 ) -> SegmentCountResult:
-    """Count separated or weakly connected nucleus segments."""
-
+    """Подсчитывает разделенные или слабо связанные сегменты ядра."""
     config = config or SegmentCountConfig()
     binary_mask = mask.astype(bool)
     if not binary_mask.any():

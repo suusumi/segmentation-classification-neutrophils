@@ -1,4 +1,4 @@
-"""Convert CVAT Segmentation Mask exports into a U-Net training dataset."""
+"""Преобразует экспорт CVAT Segmentation Mask в обучающий набор данных U-Net."""
 
 # ruff: noqa: E402
 
@@ -29,8 +29,7 @@ DEFAULT_OUTPUT_DIR = PATHS.processed_data / "nucleus_segmentation" / "curated"
 
 @dataclass(frozen=True)
 class CuratedNucleusRow:
-    """One curated segmentation sample."""
-
+    """Один курируемый образец сегментации."""
     image_id: str
     source_image_path: Path
     image_path: Path
@@ -38,8 +37,7 @@ class CuratedNucleusRow:
     split: str
 
     def to_row(self) -> dict[str, str]:
-        """Return a manifest row with project-relative paths."""
-
+        """Возвращает строку манифеста с путями относительно проекта."""
         return {
             "image_id": self.image_id,
             "source_image_path": to_project_relative_str(self.source_image_path),
@@ -50,7 +48,7 @@ class CuratedNucleusRow:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Convert a CVAT Segmentation Mask export into image/mask pairs."
@@ -85,14 +83,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def _is_image_file(path: Path) -> bool:
-    """Return True for supported image files."""
-
+    """Возвращает True для поддерживаемых файлов изображений."""
     return path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
 
 
 def _load_annotation_ids(cvat_dir: Path) -> list[str]:
-    """Load ordered image ids from the CVAT export when possible."""
-
+    """Загружает упорядоченные идентификаторы изображений из экспорта CVAT, когда это возможно."""
     default_set = cvat_dir / "ImageSets" / "Segmentation" / "default.txt"
     segmentation_class_dir = cvat_dir / "SegmentationClass"
     if default_set.is_file():
@@ -102,8 +98,7 @@ def _load_annotation_ids(cvat_dir: Path) -> list[str]:
 
 
 def _index_source_images(source_images_dir: Path) -> dict[str, Path]:
-    """Index source images by filename stem."""
-
+    """Индексирует исходные изображения по основе имени файла."""
     if not source_images_dir.is_dir():
         raise NotADirectoryError(f"Source images directory does not exist: {source_images_dir}")
     return {
@@ -114,8 +109,7 @@ def _index_source_images(source_images_dir: Path) -> dict[str, Path]:
 
 
 def _validate_fractions(val_fraction: float, test_fraction: float) -> None:
-    """Validate split fractions."""
-
+    """Проверяет доли разбиений."""
     if not 0.0 <= val_fraction < 1.0:
         raise ValueError(f"val_fraction must be in [0, 1), got {val_fraction}")
     if not 0.0 <= test_fraction < 1.0:
@@ -130,8 +124,7 @@ def assign_splits(
     test_fraction: float,
     seed: int,
 ) -> dict[str, str]:
-    """Assign deterministic train/val/test splits."""
-
+    """Назначает детерминированные разбиения train/val/test."""
     _validate_fractions(val_fraction, test_fraction)
     shuffled = image_ids.copy()
     random.Random(seed).shuffle(shuffled)
@@ -150,8 +143,7 @@ def assign_splits(
 
 
 def load_cvat_binary_mask(mask_path: Path) -> np.ndarray:
-    """Load a CVAT SegmentationClass PNG as a binary uint8 mask."""
-
+    """Загружает PNG CVAT SegmentationClass как бинарную uint8-маску."""
     if not mask_path.is_file():
         raise FileNotFoundError(f"Mask file does not exist: {mask_path}")
 
@@ -169,8 +161,7 @@ def load_cvat_binary_mask(mask_path: Path) -> np.ndarray:
 
 
 def _copy_image(source_path: Path, destination_path: Path, overwrite: bool) -> None:
-    """Copy one source image into the curated dataset."""
-
+    """Копирует одно исходное изображение в курируемый набор данных."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -178,8 +169,7 @@ def _copy_image(source_path: Path, destination_path: Path, overwrite: bool) -> N
 
 
 def _save_mask(mask: np.ndarray, destination_path: Path, overwrite: bool) -> None:
-    """Save one binary mask into the curated dataset."""
-
+    """Сохраняет одну бинарную маску в курируемый набор данных."""
     if destination_path.exists() and not overwrite:
         return
     destination_path.parent.mkdir(parents=True, exist_ok=True)
@@ -195,8 +185,7 @@ def convert_cvat_export(
     seed: int = 42,
     overwrite: bool = False,
 ) -> list[CuratedNucleusRow]:
-    """Convert CVAT masks into a curated image/mask manifest."""
-
+    """Преобразует маски CVAT в курируемый манифест изображений и масок."""
     segmentation_class_dir = cvat_dir / "SegmentationClass"
     if not segmentation_class_dir.is_dir():
         raise NotADirectoryError(
@@ -255,8 +244,7 @@ def convert_cvat_export(
 
 
 def save_manifest(rows: list[CuratedNucleusRow], manifest_path: Path) -> Path:
-    """Write a curated dataset manifest."""
-
+    """Записывает манифест курируемого набора данных."""
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = ["image_id", "source_image_path", "image_path", "mask_path", "split"]
     with manifest_path.open("w", newline="", encoding="utf-8") as file:
@@ -268,7 +256,7 @@ def save_manifest(rows: list[CuratedNucleusRow], manifest_path: Path) -> Path:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     rows = convert_cvat_export(

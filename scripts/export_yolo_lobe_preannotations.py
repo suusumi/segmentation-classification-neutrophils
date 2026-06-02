@@ -1,4 +1,4 @@
-"""Export YOLO lobe predictions as a CVAT-importable COCO instance ZIP."""
+"""Экспортирует предсказания долей YOLO в ZIP экземпляров COCO для импорта в CVAT."""
 
 # ruff: noqa: E402
 
@@ -30,14 +30,13 @@ DEFAULT_OUTPUT_ZIP = PATHS.processed_data / "nucleus_lobes" / "yolo_preannotatio
 
 @dataclass(frozen=True)
 class PreannotationImage:
-    """One image to preannotate."""
-
+    """Одно изображение для предразметки."""
     image_id: str
     image_path: Path
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Run YOLO-seg on images and export COCO annotations for CVAT review."
@@ -60,7 +59,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _load_yolo_class() -> Any:
-    """Import Ultralytics lazily."""
+    """Лениво импортирует Ultralytics."""
 
     try:
         from ultralytics import YOLO
@@ -73,15 +72,13 @@ def _load_yolo_class() -> Any:
 
 
 def _project_path(path_value: str) -> Path:
-    """Resolve a project-relative or absolute path."""
-
+    """Разрешает путь относительно проекта или абсолютный путь."""
     path = Path(path_value)
     return path if path.is_absolute() else PROJECT_ROOT / path
 
 
 def load_images_from_manifest(manifest_path: Path) -> list[PreannotationImage]:
-    """Load images from a CSV manifest."""
-
+    """Загружает изображения из CSV-манифеста."""
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Manifest does not exist: {manifest_path}")
 
@@ -101,8 +98,7 @@ def load_images_from_manifest(manifest_path: Path) -> list[PreannotationImage]:
 
 
 def load_images_from_dir(images_dir: Path) -> list[PreannotationImage]:
-    """Load supported image files from a directory."""
-
+    """Загружает поддерживаемые файлы изображений из каталога."""
     if not images_dir.is_dir():
         raise NotADirectoryError(f"Images directory does not exist: {images_dir}")
     rows = [
@@ -116,8 +112,7 @@ def load_images_from_dir(images_dir: Path) -> list[PreannotationImage]:
 
 
 def polygon_area(points: list[float]) -> float:
-    """Return polygon area using the shoelace formula."""
-
+    """Возвращает площадь полигона по формуле шнуровки."""
     if len(points) < 6:
         return 0.0
     xs = np.asarray(points[0::2], dtype=np.float64)
@@ -126,8 +121,7 @@ def polygon_area(points: list[float]) -> float:
 
 
 def _result_polygons(result: Any, min_polygon_area: float) -> list[list[float]]:
-    """Extract COCO polygon lists from one Ultralytics result."""
-
+    """Извлекает списки полигонов COCO из одного результата Ultralytics."""
     masks = getattr(result, "masks", None)
     if masks is None:
         return []
@@ -143,8 +137,7 @@ def _result_polygons(result: Any, min_polygon_area: float) -> list[list[float]]:
 
 
 def _bbox_from_polygon(points: list[float]) -> list[float]:
-    """Return COCO bbox from a flat polygon."""
-
+    """Возвращает рамку COCO из плоского полигона."""
     xs = np.asarray(points[0::2], dtype=np.float64)
     ys = np.asarray(points[1::2], dtype=np.float64)
     x_min = float(xs.min())
@@ -153,8 +146,7 @@ def _bbox_from_polygon(points: list[float]) -> list[float]:
 
 
 def build_coco(rows: list[PreannotationImage], results: list[Any], min_polygon_area: float) -> dict[str, Any]:
-    """Build a COCO instance dictionary from YOLO results."""
-
+    """Создает словарь экземпляров COCO из результатов YOLO."""
     images: list[dict[str, Any]] = []
     annotations: list[dict[str, Any]] = []
     annotation_id = 1
@@ -196,8 +188,7 @@ def build_coco(rows: list[PreannotationImage], results: list[Any], min_polygon_a
 
 
 def write_coco_zip(coco: dict[str, Any], output_zip: Path) -> Path:
-    """Write a COCO annotations zip importable by CVAT."""
-
+    """Записывает ZIP с аннотациями COCO, импортируемый в CVAT."""
     output_zip.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(
@@ -208,7 +199,7 @@ def write_coco_zip(coco: dict[str, Any], output_zip: Path) -> Path:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     if not args.weights_path.is_file():

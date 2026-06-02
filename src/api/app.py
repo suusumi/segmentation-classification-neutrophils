@@ -1,4 +1,4 @@
-"""FastAPI application for neutrophil analysis."""
+"""Приложение FastAPI для анализа нейтрофилов."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from src.storage.sqlite_repository import SQLiteAnalysisRepository
 
 
 def create_app() -> FastAPI:
-    """Build and configure the FastAPI application."""
+    """Создает и настраивает приложение FastAPI."""
 
     PATHS.ensure_runtime_dirs()
     repository = SQLiteAnalysisRepository(SETTINGS.analysis_db_path)

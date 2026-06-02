@@ -1,4 +1,4 @@
-"""Tests for YOLO nucleus lobe dataset export."""
+"""Тесты экспорта набора данных долей ядра для YOLO."""
 
 from __future__ import annotations
 

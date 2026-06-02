@@ -1,4 +1,4 @@
-"""Tests for the FastAPI analysis endpoint."""
+"""Тесты эндпоинта анализа FastAPI."""
 
 from __future__ import annotations
 

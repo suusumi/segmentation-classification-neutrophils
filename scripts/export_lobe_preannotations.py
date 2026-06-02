@@ -1,4 +1,4 @@
-"""Generate CVAT COCO preannotations for nucleus lobe review."""
+"""Генерирует предразметку COCO для проверки долей ядра в CVAT."""
 
 # ruff: noqa: E402
 
@@ -41,15 +41,14 @@ LABEL_NAME = "nucleus_lobe"
 
 @dataclass(frozen=True)
 class BatchImage:
-    """One image from a CVAT batch manifest."""
-
+    """Одно изображение из манифеста пакета CVAT."""
     image_id: str
     image_path: Path
     split: str
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
+    """Разбирает аргументы командной строки."""
 
     parser = argparse.ArgumentParser(
         description="Generate COCO instance preannotations for nucleus_lobe review."
@@ -88,8 +87,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def _project_path(path_value: str) -> Path:
-    """Resolve a project-relative path value."""
-
+    """Разрешает значение пути относительно проекта."""
     path = Path(path_value)
     if path.is_absolute():
         return path
@@ -97,8 +95,7 @@ def _project_path(path_value: str) -> Path:
 
 
 def load_batch_images(manifest_path: Path) -> list[BatchImage]:
-    """Load image paths from a CVAT batch manifest."""
-
+    """Загружает пути изображений из манифеста пакета CVAT."""
     if not manifest_path.is_file():
         raise FileNotFoundError(f"Batch manifest does not exist: {manifest_path}")
 
@@ -123,8 +120,7 @@ def load_batch_images(manifest_path: Path) -> list[BatchImage]:
 
 
 def polygon_area(points: list[float]) -> float:
-    """Return polygon area using the shoelace formula."""
-
+    """Возвращает площадь полигона по формуле шнуровки."""
     if len(points) < 6:
         return 0.0
     xs = np.asarray(points[0::2], dtype=np.float64)
@@ -137,8 +133,7 @@ def mask_to_polygons(
     tolerance: float,
     min_area: float,
 ) -> list[list[float]]:
-    """Convert one binary object mask into COCO polygon lists."""
-
+    """Преобразует одну бинарную маску объекта в списки полигонов COCO."""
     polygons: list[list[float]] = []
     padded = np.pad(mask.astype(np.uint8), pad_width=1, mode="constant")
     contours = find_contours(padded, level=0.5)
@@ -166,8 +161,7 @@ def build_preannotation_coco(
     polygon_tolerance: float,
     min_polygon_area: float,
 ) -> dict[str, Any]:
-    """Run the current pipeline split logic and return COCO annotations."""
-
+    """Запускает текущую логику разделения пайплайна и возвращает аннотации COCO."""
     pipeline = NeutrophilAnalysisPipeline(segmenter_name=segmenter_name)
     segmenter = pipeline._build_segmenter()
     images: list[dict[str, Any]] = []
@@ -228,8 +222,7 @@ def build_preannotation_coco(
 
 
 def write_coco_zip(coco: dict[str, Any], output_zip: Path) -> Path:
-    """Write a COCO annotations zip importable by CVAT."""
-
+    """Записывает ZIP с аннотациями COCO, импортируемый в CVAT."""
     output_zip.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(
@@ -240,7 +233,7 @@ def write_coco_zip(coco: dict[str, Any], output_zip: Path) -> Path:
 
 
 def main() -> None:
-    """CLI entrypoint."""
+    """Точка входа CLI."""
 
     args = parse_args()
     rows = load_batch_images(args.batch_dir / "manifest.csv")

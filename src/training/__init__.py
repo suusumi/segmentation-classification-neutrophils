@@ -1,4 +1,4 @@
-"""Training and evaluation routines for the project."""
+"""Процедуры обучения и оценки для проекта."""
 
 from .lobe_count_metrics import (
     LobeCountMetrics,
